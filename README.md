@@ -23,6 +23,13 @@ uvicorn app.main:app --reload
 ## Test
 
 ```bash
+pip install pytest httpx anyio
+python -m pytest tests/ -v
+```
+
+## Test endpoint
+
+```bash
 curl -X POST http://localhost:8000/chat \
   -H "Content-Type: application/json" \
   -d '{"message": "What are your opening hours?"}'
