@@ -1,6 +1,11 @@
-# Mini AI Agent
+# E-commerce AI Agent
 
-FastAPI + LangGraph + Pydantic playground — learning Python AI stack by building a simplified version of an agentic RAG chatbot.
+FastAPI + LangGraph + Pydantic playground — an e-commerce shopping assistant with two skills:
+
+- **Q&A** — product questions → mock KB search → structured response (agentic RAG)
+- **Order (HITL)** — order draft → user confirmation → place or cancel
+
+Inspired by agentic RAG, guardrails, and LangGraph orchestration patterns used in production AI chatbots.
 
 ## Stack
 

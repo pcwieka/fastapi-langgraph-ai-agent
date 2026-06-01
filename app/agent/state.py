@@ -1,4 +1,11 @@
-from typing import TypedDict
+from typing import NotRequired, TypedDict
+
+
+class OrderDraft(TypedDict):
+    product_id: str
+    product_name: str
+    quantity: int
+    total_price: float
 
 
 class AgentState(TypedDict):
@@ -11,6 +18,9 @@ class AgentState(TypedDict):
 
     session_id: str
     messages: list[dict[str, str]]
-    intent: str
-    kb_results: list[str]
+    skill: str
+    product_results: list[dict[str, object]]
+    order: NotRequired[OrderDraft]
+    order_confirmed: NotRequired[bool]
+    needs_confirmation: NotRequired[bool]
     final_answer: str
