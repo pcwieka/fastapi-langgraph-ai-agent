@@ -13,7 +13,7 @@ logs:
 	docker compose logs -f
 
 test:
-	docker compose exec ecommerce-agent python -m pytest tests/ -v
+	python -m pytest tests/ -v
 
 lint:
 	ruff check app/ tests/

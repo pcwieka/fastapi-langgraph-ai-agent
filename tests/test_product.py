@@ -30,6 +30,33 @@ class TestInMemoryProductRepository:
         results = repo.get_all()
         assert len(results) == 4
 
+    def test_search_handles_punctuation_in_query(self) -> None:
+        """'laptops,' should match 'laptops' after stripping trailing comma."""
+        repo = InMemoryProductRepository()
+        results = repo.search("Tell me about laptops, what do you have?")
+        names = [p["name"] for p in results]
+        assert "ProBook 15" in names
+
+    def test_search_ignores_short_tokens(self) -> None:
+        """Words < 3 chars ('me', 'do', 'is') are filtered out — no false positives."""
+        repo = InMemoryProductRepository()
+        # "me" alone would match as substring in "camera" — should be ignored
+        results = repo.search("me do is")
+        # Nothing meaningful matches → fallback returns all
+        assert len(results) == 4
+
+    def test_search_multi_word_query(self) -> None:
+        repo = InMemoryProductRepository()
+        results = repo.search("wireless headphones")
+        names = [p["name"] for p in results]
+        assert "SoundMax Wireless" in names
+
+    def test_search_partial_word_match(self) -> None:
+        """Substring match: 'probook' finds 'ProBook 15'."""
+        repo = InMemoryProductRepository()
+        results = repo.search("probook")
+        assert any(p["name"] == "ProBook 15" for p in results)
+
 
 class TestProductService:
     def test_search_delegates_to_repo(self) -> None:

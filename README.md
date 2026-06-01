@@ -202,7 +202,7 @@ API: `http://localhost:8000` | Swagger: `http://localhost:8000/docs`
 make up        start server with hot reload
 make down      stop server
 make logs      tail logs
-make test      run tests in container
+make test      run tests locally
 make lint      ruff check
 make format    ruff format
 make build     rebuild Docker image

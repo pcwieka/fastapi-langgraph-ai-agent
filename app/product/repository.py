@@ -62,7 +62,9 @@ class InMemoryProductRepository(ProductRepository):
 
     def search(self, query: str) -> list[dict[str, object]]:
         results: list[dict[str, object]] = []
-        lower = query.lower()
+        tokens = [
+            w.strip(".,!?;:\"'()[]") for w in query.lower().split() if len(w.strip(".,!?;:\"'()[]")) >= 3
+        ]
         for product in PRODUCTS.values():
             fields = [
                 product["name"],
@@ -71,7 +73,7 @@ class InMemoryProductRepository(ProductRepository):
                 product.get("specs", ""),
             ]
             searchable = " ".join(str(f) for f in fields).lower()
-            if any(word in searchable for word in lower.split()):
+            if any(token in searchable for token in tokens):
                 results.append(product)
         return results if results else list(PRODUCTS.values())
 
