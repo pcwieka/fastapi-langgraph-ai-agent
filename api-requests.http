@@ -1,0 +1,71 @@
+### Flow 1: Q&A — product question
+POST {{host}}/chat
+Content-Type: application/json
+
+{
+  "message": "Tell me about laptops, what do you have?",
+  "session_id": "qa-demo"
+}
+
+### Flow 1: Q&A — follow-up, same session
+POST {{host}}/chat
+Content-Type: application/json
+
+{
+  "message": "Do you have any wireless headphones?",
+  "session_id": "qa-demo"
+}
+
+### Flow 2: Order — HITL step 1: draft
+POST {{host}}/chat
+Content-Type: application/json
+
+{
+  "message": "I want to buy a ProBook 15",
+  "session_id": "order-demo"
+}
+
+### Flow 2: Order — HITL step 2: confirm
+POST {{host}}/chat
+Content-Type: application/json
+
+{
+  "message": "yes",
+  "session_id": "order-demo"
+}
+
+### Flow 2 (variant): Order — HITL step 1: draft
+POST {{host}}/chat
+Content-Type: application/json
+
+{
+  "message": "I want to buy BudgetPhone X",
+  "session_id": "order-cancel-demo"
+}
+
+### Flow 2 (variant): Order — HITL step 2: cancel
+POST {{host}}/chat
+Content-Type: application/json
+
+{
+  "message": "no",
+  "session_id": "order-cancel-demo"
+}
+
+### Guardrail: off-topic — should be rejected
+POST {{host}}/chat
+Content-Type: application/json
+
+{
+  "message": "What's the weather like today?",
+  "session_id": "guard-demo"
+}
+
+### Guardrail: empty message — Pydantic 422
+POST {{host}}/chat
+Content-Type: application/json
+
+{
+  "message": "",
+  "session_id": "guard-demo"
+}
