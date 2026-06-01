@@ -19,11 +19,8 @@ RUN uv pip install --system --no-cache \
 # Copy application code
 COPY app/ app/
 
-# Create data directory for SQLite checkpointer (mounted as volume in compose)
-RUN mkdir -p data && chown appuser:appuser data
-
 # Run as non-root user
-RUN useradd --create-home appuser
+RUN useradd --create-home appuser && mkdir -p data && chown appuser:appuser data
 USER appuser
 
 EXPOSE 8000
