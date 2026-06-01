@@ -10,4 +10,3 @@ class ChatResponse(BaseModel):
     answer: str
     session_id: str
     sources: list[str] = []
-    confidence: float = 0.0
