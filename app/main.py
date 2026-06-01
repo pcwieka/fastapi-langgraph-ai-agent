@@ -1,3 +1,4 @@
+import time
 import uuid
 
 from dotenv import load_dotenv
@@ -24,15 +25,21 @@ logger = setup_logger("agent")
 async def chat(request: ChatRequest) -> ChatResponse:
     session_id: str = request.session_id or str(uuid.uuid4())
 
+    t_start = time.perf_counter()
+    logger.info("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
     logger.info("REQUEST | session=%s | message=%s", session_id, request.message[:100])
 
     # Input guardrail — LLM classifies if message is on-topic
-    # Pass conversation history so short follow-ups (yes/no) are evaluated in context
+    t0 = time.perf_counter()
     previous_messages = sessions.get(session_id, {}).get("messages")
     input_check = await guard.check_input(request.message, history=previous_messages)
-    logger.info("GUARD INPUT | on_topic=%s | reason=%s", input_check.on_topic, input_check.reason)
+    logger.info(
+        "GUARD INPUT  [%.2fs] | on_topic=%s | reason=%s",
+        time.perf_counter() - t0, input_check.on_topic, input_check.reason,
+    )
 
     if not input_check.on_topic:
+        logger.info("DONE [%.2fs] | rejected by input guardrail", time.perf_counter() - t_start)
         return ChatResponse(
             answer="I can only help with product questions and orders in our store.",
             session_id=session_id,
@@ -60,13 +67,22 @@ async def chat(request: ChatRequest) -> ChatResponse:
 
     logger.info("GRAPH INPUT%s", format_state(initial_state))
 
+    t_graph = time.perf_counter()
     result: dict = await agent_graph.ainvoke(initial_state)
-
-    logger.info("GRAPH OUTPUT%s", format_state(result))
+    logger.info(
+        "GRAPH OUTPUT [%.2fs]%s",
+        time.perf_counter() - t_graph, format_state(result),
+    )
 
     # Output guardrail — LLM validates the response before returning to user
+    t1 = time.perf_counter()
     output_check = await guard.check_output(result.get("final_answer", ""))
-    logger.info("GUARD OUTPUT | valid=%s | reason=%s", output_check.valid, output_check.reason)
+    logger.info(
+        "GUARD OUTPUT [%.2fs] | valid=%s | reason=%s",
+        time.perf_counter() - t1, output_check.valid, output_check.reason,
+    )
+
+    logger.info("DONE [%.2fs] | total request time", time.perf_counter() - t_start)
 
     if not output_check.valid:
         from fastapi import HTTPException
