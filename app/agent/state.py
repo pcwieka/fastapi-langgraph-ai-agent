@@ -13,7 +13,7 @@ class AgentState(TypedDict):
 
     TypedDict is a lightweight alternative to Pydantic for graph state.
     LangGraph copies this dict between nodes — each node returns a partial
-    update that gets merged in (like Redux reducers).
+    update that gets merged into the accumulated state.
     """
 
     session_id: str

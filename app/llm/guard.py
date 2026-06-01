@@ -10,8 +10,8 @@ from app.llm.types import InputGuardResult, OutputGuardResult
 class Guardrail:
     """Input and output guardrails using LLM classification.
 
-    In production, guardrails use a cheaper/faster model than the main agent
-    (e.g., GPT-5 mini vs GPT-5). Here we reuse deepseek-v4-flash for both.
+    In production, guardrails use a cheaper/faster model than the main agent.
+    Here we reuse the same model for both to keep things simple.
     """
 
     def __init__(self) -> None:

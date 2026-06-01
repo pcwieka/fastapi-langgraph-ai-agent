@@ -10,8 +10,8 @@ from app.llm.types import SkillResult
 class SkillRouter:
     """Classifies user messages into 'qa' or 'order' skill using an LLM.
 
-    Using a class (not a plain function) so the LLM client is initialized once.
-    In production this would be a Spring-style singleton bean.
+    Using a class (not a plain function) so the structured LLM client
+    is initialized once and reused across calls.
     """
 
     def __init__(self) -> None:

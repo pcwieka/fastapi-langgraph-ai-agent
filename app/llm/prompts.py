@@ -2,7 +2,7 @@
 System prompts for each LLM node.
 
 Each prompt defines the agent's role and expected output format.
-In production () these would be managed via a prompt registry
+In production these would be managed via a prompt registry
 with versioning, not hardcoded.
 """
 

@@ -6,7 +6,7 @@ from langchain_openai import ChatOpenAI
 
 @lru_cache
 def get_llm() -> ChatOpenAI:
-    """DeepSeek client factory — singleton via lru_cache (like Spring @Service).
+    """DeepSeek client factory — singleton via lru_cache.
 
     DeepSeek API is OpenAI-compatible. We use ChatOpenAI with a custom
     base_url. The API key comes from the DEEPSEEK_API_KEY env var.
