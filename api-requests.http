@@ -75,7 +75,7 @@ POST {{host}}/chat
 Content-Type: application/json
 
 {
-  "message": "What is the status of ORD-123?",
+  "message": "What is the status of my orders?",
   "session_id": "order-demo"
 }
 
