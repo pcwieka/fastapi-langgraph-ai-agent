@@ -1,14 +1,21 @@
 from app.agent.state import AgentState
-from app.agent.tools import MOCK_PRODUCTS, create_order, find_orders, search_products
 from app.llm.response_generator import OrderDraftGenerator, QaResponseGenerator
 from app.llm.skill_router import SkillRouter
+from app.order.repository import InMemoryOrderRepository
+from app.order.service import OrderService
+from app.product.repository import InMemoryProductRepository
+from app.product.service import ProductService
 
 # Module-level singletons — one instance shared across all requests.
-# Each wraps get_llm().with_structured_output(), so creating them per request
-# would re-wrap the LLM client unnecessarily.
 skill_router = SkillRouter()
 qa_generator = QaResponseGenerator()
 order_generator = OrderDraftGenerator()
+
+product_repo = InMemoryProductRepository()
+order_repo = InMemoryOrderRepository()
+
+product_service = ProductService(product_repo)
+order_service = OrderService(order_repo)
 
 
 async def route_skill(state: AgentState) -> dict:
@@ -21,13 +28,10 @@ async def route_skill(state: AgentState) -> dict:
     return {"skill": result.skill}
 
 
-def search_products_node(state: AgentState) -> dict:
-    """Search product catalog — not an LLM call.
-
-    In production this would be Elasticsearch / vector DB, not an LLM.
-    """
+def search_products(state: AgentState) -> dict:
+    """Search product catalog via ProductService."""
     query: str = state["messages"][-1]["content"]
-    results: list[dict[str, object]] = search_products(query)
+    results: list[dict[str, object]] = product_service.search(query)
     return {"product_results": results}
 
 
@@ -48,7 +52,7 @@ async def generate_qa_answer(state: AgentState) -> dict:
 async def prepare_order(state: AgentState) -> dict:
     """Generate order draft and ask for confirmation (HITL entry point)."""
     last_message: str = state["messages"][-1]["content"]
-    all_products: list[dict[str, object]] = list(MOCK_PRODUCTS.values())
+    all_products: list[dict[str, object]] = product_service.get_all()
 
     draft_result = await order_generator.generate(
         last_message, all_products, history=state.get("messages", [])
@@ -84,7 +88,7 @@ def confirm_order(state: AgentState) -> dict:
 
     order = state.get("order", {})
     if confirmed:
-        order_id = create_order(state["session_id"], order)
+        order_id = order_service.create_order(state["session_id"], order)
         answer = (
             f"Order {order_id} confirmed! Your {order.get('product_name', 'item')} "
             f"will be shipped within 2-3 business days. "
@@ -103,8 +107,7 @@ def confirm_order(state: AgentState) -> dict:
 
 def track_order(state: AgentState) -> dict:
     """Look up orders for the current session and return status."""
-    session_id = state["session_id"]
-    orders = find_orders(session_id)
+    orders = order_service.find_orders(state["session_id"])
 
     if not orders:
         answer = "I couldn't find any orders for your session. Have you placed an order yet?"

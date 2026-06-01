@@ -1,11 +1,11 @@
 from langgraph.graph import END, StateGraph
 
-from app.agent.nodes import (
+from app.agent.skills import (
     confirm_order,
     generate_qa_answer,
     prepare_order,
     route_skill,
-    search_products_node,
+    search_products,
     track_order,
 )
 from app.agent.state import AgentState
@@ -52,7 +52,7 @@ def build_graph() -> StateGraph:
     graph: StateGraph = StateGraph(AgentState)
 
     graph.add_node("route_skill", route_skill)
-    graph.add_node("search_products", search_products_node)
+    graph.add_node("search_products", search_products)
     graph.add_node("generate_qa_answer", generate_qa_answer)
     graph.add_node("prepare_order", prepare_order)
     graph.add_node("confirm_order", confirm_order)

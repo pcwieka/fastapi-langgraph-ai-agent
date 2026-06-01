@@ -5,7 +5,7 @@ from fastapi import FastAPI
 
 from app.agent.graph import build_graph
 from app.agent.state import AgentState
-from app.llm.guard import Guardrail
+from app.llm.guardrail import Guardrail
 from app.logger import format_state, setup_logger
 from app.models import ChatRequest, ChatResponse
 

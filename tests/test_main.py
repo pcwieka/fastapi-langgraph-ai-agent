@@ -15,13 +15,9 @@ from app.main import app, sessions
 @pytest.fixture(autouse=True)
 def clear_state() -> None:
     sessions.clear()
-    from app.agent.tools import ORDERS
+    from app.agent.skills import order_repo
 
-    ORDERS.clear()
-    # Reset order ID counter so test order IDs are predictable
-    import app.agent.tools as tools
-
-    tools._next_order_id = 1000
+    order_repo.reset()
 
 
 @pytest.fixture
@@ -43,8 +39,8 @@ def _mock_guard(input_on_topic: bool, output_valid: bool = True):
         return OutputGuardResult(valid=output_valid, reason="ok" if output_valid else "invalid")
 
     return (
-        patch("app.llm.guard.Guardrail.check_input", check_input),
-        patch("app.llm.guard.Guardrail.check_output", check_output),
+        patch("app.llm.guardrail.Guardrail.check_input", check_input),
+        patch("app.llm.guardrail.Guardrail.check_output", check_output),
     )
 
 

@@ -1,3 +1,5 @@
+from abc import ABC, abstractmethod
+
 MOCK_PRODUCTS: dict[str, dict[str, object]] = {
     "probook-15": {
         "id": "probook-15",
@@ -42,42 +44,36 @@ MOCK_PRODUCTS: dict[str, dict[str, object]] = {
 }
 
 
-def search_products(query: str) -> list[dict[str, object]]:
-    """Mock product search — simulates product catalog search.
+class ProductRepository(ABC):
+    """Interface for product data access.
 
-    In production this would be Elasticsearch / vector search over a product DB.
+    In production: Elasticsearch / vector DB.
     """
-    results: list[dict[str, object]] = []
-    lower = query.lower()
-    for product_id, product in MOCK_PRODUCTS.items():
-        fields = [product["name"], product["category"], product["brand"], product.get("specs", "")]
-        searchable = " ".join(str(f) for f in fields).lower()
-        if any(word in searchable or word in lower for word in lower.split()):
-            results.append(product)
-    return results if results else list(MOCK_PRODUCTS.values())
+
+    @abstractmethod
+    def search(self, query: str) -> list[dict[str, object]]: ...
+
+    @abstractmethod
+    def get_all(self) -> list[dict[str, object]]: ...
 
 
-ORDERS: dict[str, dict] = {}
-_next_order_id = 1000
+class InMemoryProductRepository(ProductRepository):
+    """In-memory product catalog with keyword-based search."""
 
+    def search(self, query: str) -> list[dict[str, object]]:
+        results: list[dict[str, object]] = []
+        lower = query.lower()
+        for product in MOCK_PRODUCTS.values():
+            fields = [
+                product["name"],
+                product["category"],
+                product["brand"],
+                product.get("specs", ""),
+            ]
+            searchable = " ".join(str(f) for f in fields).lower()
+            if any(word in searchable for word in lower.split()):
+                results.append(product)
+        return results if results else list(MOCK_PRODUCTS.values())
 
-def create_order(session_id: str, order: dict) -> str:
-    """Save a confirmed order to the mock registry and return its ID."""
-    global _next_order_id
-    order_id = f"ORD-{_next_order_id}"
-    _next_order_id += 1
-    ORDERS[order_id] = {
-        "order_id": order_id,
-        "session_id": session_id,
-        "product_name": order.get("product_name", ""),
-        "quantity": order.get("quantity", 0),
-        "total_price": order.get("total_price", 0),
-        "status": "processing",
-        "eta": "2-3 business days",
-    }
-    return order_id
-
-
-def find_orders(session_id: str) -> list[dict]:
-    """Return all orders for a given session."""
-    return [o for o in ORDERS.values() if o["session_id"] == session_id]
+    def get_all(self) -> list[dict[str, object]]:
+        return list(MOCK_PRODUCTS.values())
