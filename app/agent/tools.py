@@ -6,7 +6,7 @@ MOCK_PRODUCTS: dict[str, dict[str, object]] = {
         "brand": "TechCorp",
         "price": 1299.99,
         "stock": 5,
-        "specs": "15.6\" display, 16GB RAM, 512GB SSD, Intel i7",
+        "specs": '15.6" display, 16GB RAM, 512GB SSD, Intel i7',
         "description": "Business laptop with all-day battery life. Ideal for professionals.",
     },
     "budget-phone-x": {
@@ -16,7 +16,7 @@ MOCK_PRODUCTS: dict[str, dict[str, object]] = {
         "brand": "PhoneCo",
         "price": 299.99,
         "stock": 12,
-        "specs": "6.1\" display, 8GB RAM, 128GB storage, dual camera",
+        "specs": '6.1" display, 8GB RAM, 128GB storage, dual camera',
         "description": "Affordable smartphone with great battery life.",
     },
     "ergo-mouse": {
@@ -50,9 +50,8 @@ def search_products(query: str) -> list[dict[str, object]]:
     results: list[dict[str, object]] = []
     lower = query.lower()
     for product_id, product in MOCK_PRODUCTS.items():
-        searchable = f"{product['name']} {product['category']} {product['brand']} {product.get('specs', '')}".lower()
+        fields = [product["name"], product["category"], product["brand"], product.get("specs", "")]
+        searchable = " ".join(str(f) for f in fields).lower()
         if any(word in searchable or word in lower for word in lower.split()):
             results.append(product)
     return results if results else list(MOCK_PRODUCTS.values())
-
-

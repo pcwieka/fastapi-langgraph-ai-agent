@@ -56,6 +56,7 @@ async def chat(request: ChatRequest) -> ChatResponse:
     output_check = await guard.check_output(result.get("final_answer", ""))
     if not output_check.valid:
         from fastapi import HTTPException
+
         raise HTTPException(status_code=500, detail="Output guardrail: invalid response")
 
     sessions[session_id] = result

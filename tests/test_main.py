@@ -29,7 +29,8 @@ def _mock_guard(input_on_topic: bool, output_valid: bool = True):
     from app.llm.types import InputGuardResult, OutputGuardResult
 
     async def check_input(self, message: str) -> InputGuardResult:
-        return InputGuardResult(on_topic=input_on_topic, reason="ok" if input_on_topic else "off-topic")
+        reason = "ok" if input_on_topic else "off-topic"
+        return InputGuardResult(on_topic=input_on_topic, reason=reason)
 
     async def check_output(self, answer: str) -> OutputGuardResult:
         return OutputGuardResult(valid=output_valid, reason="ok" if output_valid else "invalid")
@@ -42,17 +43,30 @@ def _mock_guard(input_on_topic: bool, output_valid: bool = True):
 
 def _mock_skill(skill: str):
     from app.llm.types import SkillResult
-    return patch("app.llm.skill_router.SkillRouter.classify", AsyncMock(return_value=SkillResult(skill=skill)))
+
+    return patch(
+        "app.llm.skill_router.SkillRouter.classify",
+        AsyncMock(return_value=SkillResult(skill=skill)),
+    )
 
 
 def _mock_qa_answer(response: str):
-    return patch("app.llm.response_generator.QaResponseGenerator.generate", AsyncMock(return_value=response))
+    return patch(
+        "app.llm.response_generator.QaResponseGenerator.generate",
+        AsyncMock(return_value=response),
+    )
 
 
 def _mock_order_draft():
     from app.llm.types import OrderDraftResult
-    result = OrderDraftResult(product_id="probook-15", product_name="ProBook 15", quantity=1, total_price=1299.99, note="")
-    return patch("app.llm.response_generator.OrderDraftGenerator.generate", AsyncMock(return_value=result))
+
+    result = OrderDraftResult(
+        product_id="probook-15", product_name="ProBook 15", quantity=1, total_price=1299.99, note=""
+    )
+    return patch(
+        "app.llm.response_generator.OrderDraftGenerator.generate",
+        AsyncMock(return_value=result),
+    )
 
 
 @pytest.mark.anyio
