@@ -1,6 +1,9 @@
-from unittest.mock import AsyncMock, MagicMock, patch
-
 import os
+
+# Must be set BEFORE importing app — Guardrail() is a module-level singleton
+# that calls get_llm() at import time.
+os.environ["DEEPSEEK_API_KEY"] = "test-key"
+
 from unittest.mock import AsyncMock, patch
 
 import pytest
@@ -14,12 +17,6 @@ def clear_sessions() -> None:
     sessions.clear()
 
 
-@pytest.fixture(autouse=True)
-def set_fake_api_key() -> None:
-    """Set a fake API key so get_llm() constructor doesn't raise."""
-    os.environ["DEEPSEEK_API_KEY"] = "test-key"
-
-
 @pytest.fixture
 async def client() -> AsyncClient:
     transport = ASGITransport(app=app)
@@ -27,124 +24,93 @@ async def client() -> AsyncClient:
         yield ac
 
 
-def _mock_guard(result: object) -> AsyncMock:
-    return AsyncMock(return_value=result)
+def _mock_guard(input_on_topic: bool, output_valid: bool = True):
+    """Mock both input and output guardrail checks."""
+    from app.llm.types import InputGuardResult, OutputGuardResult
+
+    async def check_input(self, message: str) -> InputGuardResult:
+        return InputGuardResult(on_topic=input_on_topic, reason="ok" if input_on_topic else "off-topic")
+
+    async def check_output(self, answer: str) -> OutputGuardResult:
+        return OutputGuardResult(valid=output_valid, reason="ok" if output_valid else "invalid")
+
+    return (
+        patch("app.llm.guard.Guardrail.check_input", check_input),
+        patch("app.llm.guard.Guardrail.check_output", check_output),
+    )
 
 
-def _mock_skill(result: object) -> AsyncMock:
-    return AsyncMock(return_value=result)
+def _mock_skill(skill: str):
+    from app.llm.types import SkillResult
+    return patch("app.llm.skill_router.SkillRouter.classify", AsyncMock(return_value=SkillResult(skill=skill)))
 
 
-def _mock_qa_gen(response: str) -> AsyncMock:
-    return AsyncMock(return_value=response)
+def _mock_qa_answer(response: str):
+    return patch("app.llm.response_generator.QaResponseGenerator.generate", AsyncMock(return_value=response))
 
 
-def _mock_order_gen(result: object) -> AsyncMock:
-    return AsyncMock(return_value=result)
+def _mock_order_draft():
+    from app.llm.types import OrderDraftResult
+    result = OrderDraftResult(product_id="probook-15", product_name="ProBook 15", quantity=1, total_price=1299.99, note="")
+    return patch("app.llm.response_generator.OrderDraftGenerator.generate", AsyncMock(return_value=result))
 
 
 @pytest.mark.anyio
 async def test_qa_product_search(client: AsyncClient) -> None:
-    from app.llm.types import GuardrailResult, SkillResult
-
-    with (
-        patch("app.llm.guard.LlmGuardrail.check", _mock_guard(GuardrailResult(on_topic=True, reason="ok"))),
-        patch("app.llm.skill_router.SkillRouter.classify", _mock_skill(SkillResult(skill="qa"))),
-        patch("app.llm.response_generator.QaResponseGenerator.generate", _mock_qa_gen("LLM: ProBook 15 is a great laptop")),
-    ):
+    g1, g2 = _mock_guard(input_on_topic=True)
+    with g1, g2, _mock_skill("qa"), _mock_qa_answer("LLM: ProBook 15 is a great laptop"):
         response = await client.post("/chat", json={"message": "Tell me about laptops"})
-
     assert response.status_code == 200
-    body = response.json()
-    assert "ProBook" in body["answer"]
-    assert len(body["sources"]) > 0
+    assert "ProBook" in response.json()["answer"]
+    assert len(response.json()["sources"]) > 0
 
 
 @pytest.mark.anyio
 async def test_qa_no_match(client: AsyncClient) -> None:
-    from app.llm.types import GuardrailResult, SkillResult
-
-    with (
-        patch("app.llm.guard.LlmGuardrail.check", _mock_guard(GuardrailResult(on_topic=True, reason="ok"))),
-        patch("app.llm.skill_router.SkillRouter.classify", _mock_skill(SkillResult(skill="qa"))),
-        patch("app.llm.response_generator.QaResponseGenerator.generate", _mock_qa_gen("LLM: no products found")),
-    ):
+    g1, g2 = _mock_guard(input_on_topic=True)
+    with g1, g2, _mock_skill("qa"), _mock_qa_answer("LLM: no products found"):
         response = await client.post("/chat", json={"message": "Do you sell furniture?"})
-
     assert response.status_code == 200
-    body = response.json()
-    assert "no products" in body["answer"].lower()
+    assert "no products" in response.json()["answer"].lower()
 
 
 @pytest.mark.anyio
 async def test_order_first_turn_prepare_draft(client: AsyncClient) -> None:
-    from app.llm.types import GuardrailResult, OrderDraftResult, SkillResult
-
-    draft = OrderDraftResult(product_id="probook-15", product_name="ProBook 15", quantity=1, total_price=1299.99, note="")
-    with (
-        patch("app.llm.guard.LlmGuardrail.check", _mock_guard(GuardrailResult(on_topic=True, reason="ok"))),
-        patch("app.llm.skill_router.SkillRouter.classify", _mock_skill(SkillResult(skill="order"))),
-        patch("app.llm.response_generator.OrderDraftGenerator.generate", _mock_order_gen(draft)),
-    ):
+    g1, g2 = _mock_guard(input_on_topic=True)
+    with g1, g2, _mock_skill("order"), _mock_order_draft():
         response = await client.post("/chat", json={"message": "I want to buy a laptop", "session_id": "s1"})
-
     assert response.status_code == 200
-    body = response.json()
-    assert "order summary" in body["answer"].lower()
-    assert "confirm" in body["answer"].lower()
+    assert "order summary" in response.json()["answer"].lower()
+    assert "confirm" in response.json()["answer"].lower()
 
 
 @pytest.mark.anyio
 async def test_order_second_turn_confirm(client: AsyncClient) -> None:
-    from app.llm.types import GuardrailResult, OrderDraftResult, SkillResult
-
-    draft = OrderDraftResult(product_id="probook-15", product_name="ProBook 15", quantity=1, total_price=1299.99, note="")
-    with (
-        patch("app.llm.guard.LlmGuardrail.check", _mock_guard(GuardrailResult(on_topic=True, reason="ok"))),
-        patch("app.llm.skill_router.SkillRouter.classify", _mock_skill(SkillResult(skill="order"))),
-        patch("app.llm.response_generator.OrderDraftGenerator.generate", _mock_order_gen(draft)),
-    ):
+    g1, g2 = _mock_guard(input_on_topic=True)
+    with g1, g2, _mock_skill("order"), _mock_order_draft():
         await client.post("/chat", json={"message": "I want to buy a laptop", "session_id": "s2"})
-
-    with (
-        patch("app.llm.guard.LlmGuardrail.check", _mock_guard(GuardrailResult(on_topic=True, reason="ok"))),
-        patch("app.llm.skill_router.SkillRouter.classify", _mock_skill(SkillResult(skill="order"))),
-    ):
+    with g1, g2, _mock_skill("order"):
         response = await client.post("/chat", json={"message": "yes", "session_id": "s2"})
-
     assert response.status_code == 200
     assert "confirmed" in response.json()["answer"].lower()
 
 
 @pytest.mark.anyio
 async def test_order_second_turn_cancel(client: AsyncClient) -> None:
-    from app.llm.types import GuardrailResult, OrderDraftResult, SkillResult
-
-    draft = OrderDraftResult(product_id="probook-15", product_name="ProBook 15", quantity=1, total_price=1299.99, note="")
-    with (
-        patch("app.llm.guard.LlmGuardrail.check", _mock_guard(GuardrailResult(on_topic=True, reason="ok"))),
-        patch("app.llm.skill_router.SkillRouter.classify", _mock_skill(SkillResult(skill="order"))),
-        patch("app.llm.response_generator.OrderDraftGenerator.generate", _mock_order_gen(draft)),
-    ):
+    g1, g2 = _mock_guard(input_on_topic=True)
+    with g1, g2, _mock_skill("order"), _mock_order_draft():
         await client.post("/chat", json={"message": "I want to buy a laptop", "session_id": "s3"})
-
-    with (
-        patch("app.llm.guard.LlmGuardrail.check", _mock_guard(GuardrailResult(on_topic=True, reason="ok"))),
-        patch("app.llm.skill_router.SkillRouter.classify", _mock_skill(SkillResult(skill="order"))),
-    ):
+    with g1, g2, _mock_skill("order"):
         response = await client.post("/chat", json={"message": "no", "session_id": "s3"})
-
     assert response.status_code == 200
     assert "cancelled" in response.json()["answer"].lower()
 
 
 @pytest.mark.anyio
 async def test_off_topic_rejected_by_guardrail(client: AsyncClient) -> None:
-    from app.llm.types import GuardrailResult
-
-    with patch("app.llm.guard.LlmGuardrail.check", _mock_guard(GuardrailResult(on_topic=False, reason="off-topic"))):
+    g1, g2 = _mock_guard(input_on_topic=False)
+    with g1, g2:
         response = await client.post("/chat", json={"message": "What is the weather today?"})
-
     assert response.status_code == 200
     assert "only help with product questions and orders" in response.json()["answer"]
 
@@ -157,14 +123,8 @@ async def test_empty_message_rejected_by_pydantic(client: AsyncClient) -> None:
 
 @pytest.mark.anyio
 async def test_session_id_preserved(client: AsyncClient) -> None:
-    from app.llm.types import GuardrailResult, SkillResult
-
-    with (
-        patch("app.llm.guard.LlmGuardrail.check", _mock_guard(GuardrailResult(on_topic=True, reason="ok"))),
-        patch("app.llm.skill_router.SkillRouter.classify", _mock_skill(SkillResult(skill="qa"))),
-        patch("app.llm.response_generator.QaResponseGenerator.generate", _mock_qa_gen("LLM: hello")),
-    ):
+    g1, g2 = _mock_guard(input_on_topic=True)
+    with g1, g2, _mock_skill("qa"), _mock_qa_answer("LLM: hello"):
         response = await client.post("/chat", json={"message": "Hi", "session_id": "my-session-123"})
-
     assert response.status_code == 200
     assert response.json()["session_id"] == "my-session-123"

@@ -1,25 +1,33 @@
-"""LLM-based input guardrail — replaces keyword matching in guardrails.py."""
+"""LLM-based guardrails — both input (is this on-topic?) and output (is this response valid?)."""
 
 from langchain_core.messages import HumanMessage, SystemMessage
 
 from app.llm.client import get_llm
-from app.llm.prompts import GUARDRAIL_PROMPT
-from app.llm.types import GuardrailResult
+from app.llm.prompts import INPUT_GUARD_PROMPT, OUTPUT_GUARD_PROMPT
+from app.llm.types import InputGuardResult, OutputGuardResult
 
 
-class LlmGuardrail:
-    """Evaluates whether a user message is on-topic using an LLM.
+class Guardrail:
+    """Input and output guardrails using LLM classification.
 
-    Uses a fast/cheap model (deepseek-chat with temperature=0) as a classifier.
-    In production this would be an even cheaper model (GPT-5 mini equivalent).
+    In production, guardrails use a cheaper/faster model than the main agent
+    (e.g., GPT-5 mini vs GPT-5). Here we reuse deepseek-v4-flash for both.
     """
 
     def __init__(self) -> None:
-        self._llm = get_llm().with_structured_output(GuardrailResult)
+        self._input_llm = get_llm().with_structured_output(InputGuardResult)
+        self._output_llm = get_llm().with_structured_output(OutputGuardResult)
 
-    async def check(self, message: str) -> GuardrailResult:
+    async def check_input(self, message: str) -> InputGuardResult:
         messages = [
-            SystemMessage(content=GUARDRAIL_PROMPT),
+            SystemMessage(content=INPUT_GUARD_PROMPT),
             HumanMessage(content=message),
         ]
-        return await self._llm.ainvoke(messages)
+        return await self._input_llm.ainvoke(messages)
+
+    async def check_output(self, answer: str) -> OutputGuardResult:
+        messages = [
+            SystemMessage(content=OUTPUT_GUARD_PROMPT),
+            HumanMessage(content=answer),
+        ]
+        return await self._output_llm.ainvoke(messages)

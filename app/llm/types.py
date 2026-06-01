@@ -19,6 +19,11 @@ class OrderDraftResult(BaseModel):
     note: str = ""
 
 
-class GuardrailResult(BaseModel):
+class InputGuardResult(BaseModel):
     on_topic: bool
+    reason: str
+
+
+class OutputGuardResult(BaseModel):
+    valid: bool
     reason: str

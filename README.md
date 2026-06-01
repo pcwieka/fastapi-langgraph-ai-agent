@@ -30,7 +30,7 @@ uvicorn app.main:app --reload
 - API: `http://localhost:8000`
 - Swagger docs: `http://localhost:8000/docs`
 
-Works **with or without** `DEEPSEEK_API_KEY` — falls back to keyword-based mock when no key is set.
+Requires `DEEPSEEK_API_KEY` (DeepSeek API key). Copy `.env.example` to `.env` and fill it in.
 
 ## Test
 

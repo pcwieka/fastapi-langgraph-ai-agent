@@ -5,8 +5,7 @@ from fastapi import FastAPI
 
 from app.agent.graph import build_graph
 from app.agent.state import AgentState
-from app.guardrails import validate_output
-from app.llm.guard import LlmGuardrail
+from app.llm.guard import Guardrail
 from app.models import ChatRequest, ChatResponse
 
 load_dotenv()
@@ -14,6 +13,7 @@ load_dotenv()
 app = FastAPI(title="E-commerce AI Agent")
 
 agent_graph = build_graph()
+guard = Guardrail()
 
 sessions: dict[str, dict] = {}
 
@@ -22,9 +22,9 @@ sessions: dict[str, dict] = {}
 async def chat(request: ChatRequest) -> ChatResponse:
     session_id: str = request.session_id or str(uuid.uuid4())
 
-    # Input guardrail — LLM-based classification
-    guard_result = await LlmGuardrail().check(request.message)
-    if not guard_result.on_topic:
+    # Input guardrail — LLM classifies if message is on-topic
+    input_check = await guard.check_input(request.message)
+    if not input_check.on_topic:
         return ChatResponse(
             answer="I can only help with product questions and orders in our store.",
             session_id=session_id,
@@ -52,7 +52,9 @@ async def chat(request: ChatRequest) -> ChatResponse:
 
     result: dict = await agent_graph.ainvoke(initial_state)
 
-    if not validate_output(result.get("final_answer", "")):
+    # Output guardrail — LLM validates the response before returning to user
+    output_check = await guard.check_output(result.get("final_answer", ""))
+    if not output_check.valid:
         from fastapi import HTTPException
         raise HTTPException(status_code=500, detail="Output guardrail: invalid response")
 
