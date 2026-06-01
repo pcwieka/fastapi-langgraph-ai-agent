@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
-from langgraph.checkpoint.sqlite import SqliteSaver
+from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
 from langgraph.graph import StateGraph
 from langgraph.types import Command
 
@@ -23,11 +23,11 @@ logger = setup_logger("agent")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Startup/shutdown: manage SqliteSaver lifecycle."""
+    """Startup/shutdown: manage AsyncSqliteSaver lifecycle."""
     global agent_graph
-    with SqliteSaver.from_conn_string("data/checkpoints.db") as checkpointer:
+    async with AsyncSqliteSaver.from_conn_string("data/checkpoints.db") as checkpointer:
         agent_graph = build_graph(checkpointer=checkpointer)
-        logger.info("Checkpointer ready (SQLite: checkpoints.db)")
+        logger.info("Checkpointer ready (AsyncSqliteSaver: data/checkpoints.db)")
         yield
     logger.info("Checkpointer closed")
 
@@ -45,7 +45,7 @@ async def chat(request: ChatRequest) -> ChatResponse:
     logger.info("REQUEST | session=%s | message=%s", session_id, request.message[:100])
 
     # Check if there's a pending interrupt for this session
-    snapshot = agent_graph.get_state(config)
+    snapshot = await agent_graph.aget_state(config)
     has_interrupt = bool(snapshot.next)
     history_messages = snapshot.values.get("messages") if snapshot.values else None
 

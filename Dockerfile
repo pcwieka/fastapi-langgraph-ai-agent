@@ -13,6 +13,7 @@ RUN uv pip install --system --no-cache \
     pydantic \
     langgraph \
     langgraph-checkpoint-sqlite \
+    aiosqlite \
     langchain-openai \
     python-dotenv
 
