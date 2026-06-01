@@ -2,7 +2,7 @@
 
 from langchain_core.messages import HumanMessage, SystemMessage
 
-from app.llm.client import get_llm
+from app.llm.client import ainvoke_json, get_llm, get_llm_json
 from app.llm.prompts import ORDER_DRAFT_PROMPT, QA_ANSWER_PROMPT
 from app.llm.types import OrderDraftResult
 
@@ -37,12 +37,12 @@ class QaResponseGenerator:
 class OrderDraftGenerator:
     """Extracts product and quantity from user's order request using LLM.
 
-    Uses structured output (with_structured_output) for type-safe extraction.
-    Falls back to first product if LLM can't match.
+    Uses JSON mode (response_format json_object) + manual Pydantic parsing
+    because DeepSeek does not support structured output (json_schema).
     """
 
     def __init__(self) -> None:
-        self._llm = get_llm().with_structured_output(OrderDraftResult)
+        self._llm = get_llm_json()
 
     async def generate(self, user_message: str, product_catalog: list[dict]) -> OrderDraftResult:
         catalog_text = "\n".join(
@@ -54,4 +54,4 @@ class OrderDraftGenerator:
             SystemMessage(content=prompt),
             HumanMessage(content=user_message),
         ]
-        return await self._llm.ainvoke(messages)
+        return await ainvoke_json(self._llm, messages, OrderDraftResult)

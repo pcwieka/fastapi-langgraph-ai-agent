@@ -2,7 +2,7 @@
 
 from langchain_core.messages import HumanMessage, SystemMessage
 
-from app.llm.client import get_llm
+from app.llm.client import ainvoke_json, get_llm_json
 from app.llm.prompts import INPUT_GUARD_PROMPT, OUTPUT_GUARD_PROMPT
 from app.llm.types import InputGuardResult, OutputGuardResult
 
@@ -15,19 +15,18 @@ class Guardrail:
     """
 
     def __init__(self) -> None:
-        self._input_llm = get_llm().with_structured_output(InputGuardResult)
-        self._output_llm = get_llm().with_structured_output(OutputGuardResult)
+        self._llm = get_llm_json()
 
     async def check_input(self, message: str) -> InputGuardResult:
         messages = [
             SystemMessage(content=INPUT_GUARD_PROMPT),
             HumanMessage(content=message),
         ]
-        return await self._input_llm.ainvoke(messages)
+        return await ainvoke_json(self._llm, messages, InputGuardResult)
 
     async def check_output(self, answer: str) -> OutputGuardResult:
         messages = [
             SystemMessage(content=OUTPUT_GUARD_PROMPT),
             HumanMessage(content=answer),
         ]
-        return await self._output_llm.ainvoke(messages)
+        return await ainvoke_json(self._llm, messages, OutputGuardResult)
