@@ -8,7 +8,7 @@ from app.llm.types import SkillResult
 
 
 class SkillRouter:
-    """Classifies user messages into 'qa' or 'order' skill using an LLM.
+    """Classifies user messages into 'qa', 'order', or 'track' skill using an LLM.
 
     Using a class (not a plain function) so the JSON-mode LLM client
     is initialized once and reused across calls.

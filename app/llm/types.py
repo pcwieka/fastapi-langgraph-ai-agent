@@ -1,8 +1,4 @@
-"""Pydantic models for structured LLM output.
-
-Using with_structured_output() instead of parsing raw JSON — this gives
-type safety and automatic validation.
-"""
+"""Pydantic models for LLM JSON output — parsed via model_validate_json()."""
 
 from pydantic import BaseModel, Field
 

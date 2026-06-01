@@ -3,7 +3,7 @@ import uuid
 from contextlib import asynccontextmanager
 
 from dotenv import load_dotenv
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from langgraph.checkpoint.sqlite import SqliteSaver
 from langgraph.graph import StateGraph
 from langgraph.types import Command
@@ -54,7 +54,9 @@ async def chat(request: ChatRequest) -> ChatResponse:
     input_check = await guard.check_input(request.message, history=history_messages)
     logger.info(
         "GUARD INPUT  [%.2fs] | on_topic=%s | reason=%s",
-        time.perf_counter() - t0, input_check.on_topic, input_check.reason,
+        time.perf_counter() - t0,
+        input_check.on_topic,
+        input_check.reason,
     )
 
     if not input_check.on_topic:
@@ -83,7 +85,8 @@ async def chat(request: ChatRequest) -> ChatResponse:
 
     logger.info(
         "GRAPH OUTPUT [%.2fs]%s",
-        time.perf_counter() - t_graph, format_state(result),
+        time.perf_counter() - t_graph,
+        format_state(result),
     )
 
     # Output guardrail — LLM validates the response before returning to user
@@ -91,12 +94,12 @@ async def chat(request: ChatRequest) -> ChatResponse:
     output_check = await guard.check_output(result.get("final_answer", ""))
     logger.info(
         "GUARD OUTPUT [%.2fs] | valid=%s | reason=%s",
-        time.perf_counter() - t1, output_check.valid, output_check.reason,
+        time.perf_counter() - t1,
+        output_check.valid,
+        output_check.reason,
     )
 
     if not output_check.valid:
-        from fastapi import HTTPException
-
         raise HTTPException(status_code=500, detail="Output guardrail: invalid response")
 
     logger.info("DONE [%.2fs] | total request time", time.perf_counter() - t_start)

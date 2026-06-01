@@ -57,9 +57,7 @@ class OrderDraftGenerator:
             )
         else:
             conv_text = "(no previous conversation)"
-        prompt = ORDER_DRAFT_PROMPT.format(
-            conversation_history=conv_text, product_catalog=catalog_text
-        )
+        prompt = ORDER_DRAFT_PROMPT.format(conversation_history=conv_text, product_catalog=catalog_text)
         messages = [
             SystemMessage(content=prompt),
             HumanMessage(content=user_message),

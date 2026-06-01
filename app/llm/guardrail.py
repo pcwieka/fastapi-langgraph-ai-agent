@@ -21,9 +21,11 @@ class Guardrail:
         context_text = ""
         if history:
             last_exchanges = history[-4:]  # last 2 turns (user + assistant)
-            context_text = "Conversation so far:\n" + "\n".join(
-                f"[{m['role']}] {m['content'][:200]}" for m in last_exchanges
-            ) + "\n\n"
+            context_text = (
+                "Conversation so far:\n"
+                + "\n".join(f"[{m['role']}] {m['content'][:200]}" for m in last_exchanges)
+                + "\n\n"
+            )
 
         messages = [
             SystemMessage(content=INPUT_GUARD_PROMPT),

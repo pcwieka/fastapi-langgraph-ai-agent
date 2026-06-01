@@ -50,7 +50,9 @@ def format_state(state: dict) -> str:
             parts.append(f"product_results: {sources}")
 
     return (
-        "\n  " + "\n  ".join(parts) + "\n\n  messages:\n" +
-        ("\n".join(msg_lines) if msg_lines else "  (empty)") +
-        f"\n\n  final_answer: {state.get('final_answer', '')[:200]}"
+        "\n  "
+        + "\n  ".join(parts)
+        + "\n\n  messages:\n"
+        + ("\n".join(msg_lines) if msg_lines else "  (empty)")
+        + f"\n\n  final_answer: {state.get('final_answer', '')[:200]}"
     )

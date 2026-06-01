@@ -158,9 +158,7 @@ async def test_session_id_preserved(client: AsyncClient) -> None:
 async def test_track_order_no_orders(client: AsyncClient) -> None:
     g1, g2 = _mock_guard(input_on_topic=True)
     with g1, g2, _mock_skill("track"):
-        response = await client.post(
-            "/chat", json={"message": "Where is my order?", "session_id": "s9"}
-        )
+        response = await client.post("/chat", json={"message": "Where is my order?", "session_id": "s9"})
     assert response.status_code == 200
     assert "couldn't find any orders" in response.json()["answer"].lower()
 
@@ -170,18 +168,14 @@ async def test_track_order_after_confirm(client: AsyncClient) -> None:
     g1, g2 = _mock_guard(input_on_topic=True)
     # Place an order and confirm it
     with g1, g2, _mock_skill("order"), _mock_order_draft():
-        await client.post(
-            "/chat", json={"message": "I want to buy a laptop", "session_id": "s10"}
-        )
+        await client.post("/chat", json={"message": "I want to buy a laptop", "session_id": "s10"})
     # On resume, route_skill is skipped — no _mock_skill needed
     with g1, g2:
         await client.post("/chat", json={"message": "yes", "session_id": "s10"})
 
     # Now track it
     with g1, g2, _mock_skill("track"):
-        response = await client.post(
-            "/chat", json={"message": "Where is my order?", "session_id": "s10"}
-        )
+        response = await client.post("/chat", json={"message": "Where is my order?", "session_id": "s10"})
     assert response.status_code == 200
     body = response.json()
     assert "ORD-1000" in body["answer"]

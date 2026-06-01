@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-MOCK_PRODUCTS: dict[str, dict[str, object]] = {
+PRODUCTS: dict[str, dict[str, object]] = {
     "probook-15": {
         "id": "probook-15",
         "name": "ProBook 15",
@@ -63,7 +63,7 @@ class InMemoryProductRepository(ProductRepository):
     def search(self, query: str) -> list[dict[str, object]]:
         results: list[dict[str, object]] = []
         lower = query.lower()
-        for product in MOCK_PRODUCTS.values():
+        for product in PRODUCTS.values():
             fields = [
                 product["name"],
                 product["category"],
@@ -73,7 +73,7 @@ class InMemoryProductRepository(ProductRepository):
             searchable = " ".join(str(f) for f in fields).lower()
             if any(word in searchable for word in lower.split()):
                 results.append(product)
-        return results if results else list(MOCK_PRODUCTS.values())
+        return results if results else list(PRODUCTS.values())
 
     def get_all(self) -> list[dict[str, object]]:
-        return list(MOCK_PRODUCTS.values())
+        return list(PRODUCTS.values())

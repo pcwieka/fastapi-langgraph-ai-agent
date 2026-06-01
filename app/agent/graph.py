@@ -40,7 +40,7 @@ def build_graph(checkpointer: BaseCheckpointSaver) -> StateGraph:
 
     Order path (HITL via interrupt):
         route_skill ──(order)──> prepare_order ──> await_confirmation ──> finalize_order ──> END
-                                    (interrupt() pauses execution)     (resumes here)
+                               drafts the order       interrupt()         processes response
 
     Track path:
         route_skill ──(track)──> track_order ──> END

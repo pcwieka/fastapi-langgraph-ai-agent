@@ -107,7 +107,12 @@ def finalize_order(state: AgentState) -> dict:
     """Process HITL confirmation and create or cancel the order."""
     user_response: str = state.get("user_response", "")
     confirmed: bool = user_response.lower().strip() in (
-        "yes", "yeah", "y", "confirm", "ok", "okay",
+        "yes",
+        "yeah",
+        "y",
+        "confirm",
+        "ok",
+        "okay",
     )
 
     order = state.get("order", {})
