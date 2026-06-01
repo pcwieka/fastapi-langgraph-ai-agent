@@ -38,9 +38,9 @@ class TestInMemoryProductRepository:
         assert "ProBook 15" in names
 
     def test_search_ignores_short_tokens(self) -> None:
-        """Words < 3 chars ('me', 'do', 'is') are filtered out — no false positives."""
+        """Words < 3 chars ('me', 'do', 'is') are filtered out - no false positives."""
         repo = InMemoryProductRepository()
-        # "me" alone would match as substring in "camera" — should be ignored
+        # "me" alone would match as substring in "camera" - should be ignored
         results = repo.search("me do is")
         # Nothing meaningful matches → fallback returns all
         assert len(results) == 4

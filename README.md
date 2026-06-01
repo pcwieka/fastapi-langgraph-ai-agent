@@ -1,6 +1,6 @@
-# E-commerce AI Agent — Agentic RAG + HITL
+# E-commerce AI Agent - Agentic RAG + HITL
 
-An **agentic RAG** shopping assistant built with **FastAPI**, **LangGraph**, and **DeepSeek LLM** — the agent decides when to search, when to ask for confirmation, and when to look up orders. 7 nodes, 3 skills, 1 checkpointer.
+An **agentic RAG** shopping assistant built with **FastAPI**, **LangGraph**, and **DeepSeek LLM** - the agent decides when to search, when to ask for confirmation, and when to look up orders. 7 nodes, 3 skills, 1 checkpointer.
 
 ## What it does
 
@@ -16,11 +16,11 @@ Every request passes through **input and output guardrails** (LLM-based validati
 
 ## Architecture highlights
 
-- **Agentic RAG** — the agent decides when to search the product catalog
-- **Human-in-the-Loop** — orders require explicit user confirmation via LangGraph's native `interrupt()` / `Command(resume=...)` pattern
-- **Persistent state** — graph execution state survives server restarts (SQLite checkpointer)
-- **Package-by-feature** — `product/` and `order/` domains each own their repository (ABC interface + in-memory implementation) and service layer
-- **Structured logging** — per-request timing breakdown: guardrail latency, graph execution time, total request duration
+- **Agentic RAG** - the agent decides when to search the product catalog
+- **Human-in-the-Loop** - orders require explicit user confirmation via LangGraph's native `interrupt()` / `Command(resume=...)` pattern
+- **Persistent state** - graph execution state survives server restarts (SQLite checkpointer)
+- **Package-by-feature** - `product/` and `order/` domains each own their repository (ABC interface + in-memory implementation) and service layer
+- **Structured logging** - per-request timing breakdown: guardrail latency, graph execution time, total request duration
 
 ## Agent graph (7 nodes, 3 paths)
 
@@ -134,7 +134,7 @@ sequenceDiagram
     Graph-->>CP: save state
     deactivate Graph
     CP-->>Main: next=("await_confirmation",)
-    Main-->>User: "Confirm? ProBook 15 — $1299.99 (yes/no)"
+    Main-->>User: "Confirm? ProBook 15 - $1299.99 (yes/no)"
 
     User->>Main: POST "yes"
     Main->>CP: get_state(config)
@@ -216,7 +216,7 @@ curl -X POST http://localhost:8000/chat \
   -H "Content-Type: application/json" \
   -d '{"message": "Tell me about laptops", "session_id": "s1"}'
 
-# Place an order (step 1 — draft)
+# Place an order (step 1 - draft)
 curl -X POST http://localhost:8000/chat \
   -H "Content-Type: application/json" \
   -d '{"message": "I want to buy a ProBook 15", "session_id": "s2"}'

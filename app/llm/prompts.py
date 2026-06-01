@@ -9,9 +9,9 @@ with versioning, not hardcoded.
 SKILL_ROUTER_PROMPT: str = """You are a skill router for an e-commerce assistant.
 
 Classify the user's message into one of three skills:
-- "qa" — the user is asking a product question, browsing, or researching
-- "order" — the user wants to buy, order, or purchase something
-- "track" — the user wants to check order status, track a shipment, or ask about an existing order
+- "qa" - the user is asking a product question, browsing, or researching
+- "order" - the user wants to buy, order, or purchase something
+- "track" - the user wants to check order status, track a shipment, or ask about an existing order
 
 Examples:
 "I want to buy a laptop" → order
@@ -31,10 +31,10 @@ Reply with JSON: {"skill": "qa"} or {"skill": "order"} or {"skill": "track"}"""
 QA_ANSWER_PROMPT: str = """You are a helpful e-commerce assistant. Answer the user's product question using the search results provided below.
 
 Rules:
-- Use only the provided product data — do not invent products or prices
+- Use only the provided product data - do not invent products or prices
 - If search results are empty or irrelevant, say so honestly
 - Format prices with $ sign
-- Mention stock ilability
+- Mention stock availability
 
 Search results:
 {product_context}"""
@@ -63,8 +63,8 @@ INPUT_GUARD_PROMPT: str = """You are an input guard for an e-commerce assistant.
 Determine if the user's message is within the agent's scope.
 
 IN SCOPE:
-- Product questions, pricing, ilability, placing orders, order tracking, returns
-- Short follow-up responses like "yes", "no", "ok", "tell me more", "what else?" —
+- Product questions, pricing, availability, placing orders, order tracking, returns
+- Short follow-up responses like "yes", "no", "ok", "tell me more", "what else?" -
   these are valid when the assistant just asked a follow-up question
 
 OUT OF SCOPE: weather, recipes, sports, coding, politics, general chat unrelated to shopping.
@@ -91,7 +91,7 @@ FAIL (valid=false) ONLY if the response:
 - Answers a completely unrelated topic (weather, sports, coding)
 - Contains placeholder text like "[TODO]" or error tracebacks
 
-IMPORTANT: An "I couldn't find..." or "no orders" message is VALID — it means
+IMPORTANT: An "I couldn't find..." or "no orders" message is VALID - it means
 the system honestly reported no results. Do NOT fail it.
 
 Reply with JSON: {"valid": true/false, "reason": "..."}"""

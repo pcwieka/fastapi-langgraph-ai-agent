@@ -67,7 +67,7 @@ async def chat(request: ChatRequest) -> ChatResponse:
             sources=[],
         )
 
-    # Invoke graph — resume from interrupt or start new run
+    # Invoke graph - resume from interrupt or start new run
     t_graph = time.perf_counter()
     if has_interrupt:
         logger.info("GRAPH RESUME | resuming from interrupt")
@@ -89,7 +89,7 @@ async def chat(request: ChatRequest) -> ChatResponse:
         format_state(result),
     )
 
-    # Output guardrail — LLM validates the response before returning to user
+    # Output guardrail - LLM validates the response before returning to user
     t1 = time.perf_counter()
     output_check = await guard.check_output(result.get("final_answer", ""))
     logger.info(

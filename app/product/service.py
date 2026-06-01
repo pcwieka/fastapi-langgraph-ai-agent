@@ -4,7 +4,7 @@ from app.product.repository import ProductRepository
 class ProductService:
     """Product search and retrieval.
 
-    Depends on ProductRepository interface — never knows the concrete implementation.
+    Depends on ProductRepository interface - never knows the concrete implementation.
     """
 
     def __init__(self, repo: ProductRepository) -> None:

@@ -4,7 +4,7 @@ from app.order.repository import OrderRepository
 class OrderService:
     """Order creation and tracking.
 
-    Depends on OrderRepository interface — never knows the concrete implementation.
+    Depends on OrderRepository interface - never knows the concrete implementation.
     """
 
     def __init__(self, repo: OrderRepository) -> None:

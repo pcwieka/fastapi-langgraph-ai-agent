@@ -1,4 +1,4 @@
-"""Pydantic models for LLM JSON output — parsed via model_validate_json()."""
+"""Pydantic models for LLM JSON output - parsed via model_validate_json()."""
 
 from pydantic import BaseModel, Field
 

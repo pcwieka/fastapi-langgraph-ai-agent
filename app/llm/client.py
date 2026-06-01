@@ -10,7 +10,7 @@ T = TypeVar("T", bound=BaseModel)
 
 @lru_cache
 def get_llm() -> ChatOpenAI:
-    """DeepSeek client factory — singleton via lru_cache.
+    """DeepSeek client factory - singleton via lru_cache.
 
     DeepSeek API is OpenAI-compatible. We use ChatOpenAI with a custom
     base_url. The API key comes from the DEEPSEEK_API_KEY env var.

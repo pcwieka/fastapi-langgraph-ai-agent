@@ -1,4 +1,4 @@
-"""LLM-based guardrails — both input (is this on-topic?) and output (is this response valid?)."""
+"""LLM-based guardrails - both input (is this on-topic?) and output (is this response valid?)."""
 
 from langchain_core.messages import HumanMessage, SystemMessage
 

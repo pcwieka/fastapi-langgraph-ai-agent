@@ -1,4 +1,4 @@
-"""LLM-based skill router — replaces keyword matching in route_skill node."""
+"""LLM-based skill router - replaces keyword matching in route_skill node."""
 
 from langchain_core.messages import HumanMessage, SystemMessage
 

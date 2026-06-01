@@ -19,7 +19,7 @@ def setup_logger(name: str = "agent") -> logging.Logger:
 
 
 def format_state(state: dict) -> str:
-    """Pretty-print agent state for logs — one message per line in chat history."""
+    """Pretty-print agent state for logs - one message per line in chat history."""
     messages = state.get("messages", [])
     msg_lines = []
     for m in messages:

@@ -1,7 +1,7 @@
 [project]
 name = "ecommerce-ai-agent"
 version = "0.2.0"
-description = "E-commerce AI Agent — FastAPI + LangGraph + DeepSeek LLM"
+description = "E-commerce AI Agent - FastAPI + LangGraph + DeepSeek LLM"
 requires-python = ">=3.11"
 dependencies = [
     "fastapi>=0.115.0",
@@ -30,7 +30,7 @@ target-version = "py311"
 select = ["E", "F", "I", "N", "W", "UP"]
 
 [tool.ruff.lint.per-file-ignores]
-"app/llm/prompts.py" = ["E501"]   # LLM prompts — breaking lines alters prompt text
+"app/llm/prompts.py" = ["E501"]   # LLM prompts - breaking lines alters prompt text
 
 [tool.ruff.format]
 quote-style = "double"

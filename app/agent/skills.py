@@ -8,7 +8,7 @@ from app.order.service import OrderService
 from app.product.repository import InMemoryProductRepository
 from app.product.service import ProductService
 
-# Module-level singletons — one instance shared across all requests.
+# Module-level singletons - one instance shared across all requests.
 skill_router = SkillRouter()
 qa_generator = QaResponseGenerator()
 order_generator = OrderDraftGenerator()
@@ -23,7 +23,7 @@ order_service = OrderService(order_repo)
 async def route_skill(state: AgentState) -> dict:
     """Classify user intent: Q&A, Order, or Track.
 
-    Only runs for new messages — on HITL resume, LangGraph skips
+    Only runs for new messages - on HITL resume, LangGraph skips
     the entry point and continues from the interrupt directly.
     """
     last_message: str = state["messages"][-1]["content"]
@@ -39,7 +39,7 @@ def search_products(state: AgentState) -> dict:
 
 
 async def generate_qa_answer(state: AgentState) -> dict:
-    """Compose product Q&A response — LLM with search results as context (RAG generation)."""
+    """Compose product Q&A response - LLM with search results as context (RAG generation)."""
     products = state.get("product_results", [])
     user_message: str = state["messages"][-1]["content"]
     answer: str = await qa_generator.generate(user_message, products)
@@ -143,7 +143,7 @@ def track_order(state: AgentState) -> dict:
         lines = []
         for o in orders:
             lines.append(
-                f"Order {o['order_id']}: {o['product_name']} x{o['quantity']} — "
+                f"Order {o['order_id']}: {o['product_name']} x{o['quantity']} - "
                 f"${o['total_price']:.2f} | Status: {o['status']} | ETA: {o['eta']}"
             )
         answer = "Here are your orders:\n\n" + "\n".join(lines)

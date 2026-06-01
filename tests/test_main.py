@@ -1,6 +1,6 @@
 import os
 
-# Must be set BEFORE importing app — Guardrail() is a module-level singleton
+# Must be set BEFORE importing app - Guardrail() is a module-level singleton
 # that calls get_llm() at import time.
 os.environ["DEEPSEEK_API_KEY"] = "test-key"
 
@@ -111,7 +111,7 @@ async def test_order_second_turn_confirm(client: AsyncClient) -> None:
     g1, g2 = _mock_guard(input_on_topic=True)
     with g1, g2, _mock_skill("order"), _mock_order_draft():
         await client.post("/chat", json={"message": "I want to buy a laptop", "session_id": "s2"})
-    # On resume, route_skill is skipped — no _mock_skill needed
+    # On resume, route_skill is skipped - no _mock_skill needed
     with g1, g2:
         response = await client.post("/chat", json={"message": "yes", "session_id": "s2"})
     assert response.status_code == 200
@@ -123,7 +123,7 @@ async def test_order_second_turn_cancel(client: AsyncClient) -> None:
     g1, g2 = _mock_guard(input_on_topic=True)
     with g1, g2, _mock_skill("order"), _mock_order_draft():
         await client.post("/chat", json={"message": "I want to buy a laptop", "session_id": "s3"})
-    # On resume, route_skill is skipped — no _mock_skill needed
+    # On resume, route_skill is skipped - no _mock_skill needed
     with g1, g2:
         response = await client.post("/chat", json={"message": "no", "session_id": "s3"})
     assert response.status_code == 200
@@ -169,7 +169,7 @@ async def test_track_order_after_confirm(client: AsyncClient) -> None:
     # Place an order and confirm it
     with g1, g2, _mock_skill("order"), _mock_order_draft():
         await client.post("/chat", json={"message": "I want to buy a laptop", "session_id": "s10"})
-    # On resume, route_skill is skipped — no _mock_skill needed
+    # On resume, route_skill is skipped - no _mock_skill needed
     with g1, g2:
         await client.post("/chat", json={"message": "yes", "session_id": "s10"})
 

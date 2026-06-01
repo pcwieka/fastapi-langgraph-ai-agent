@@ -1,4 +1,4 @@
-"""LLM-based response generators — replace string formatting in agent nodes."""
+"""LLM-based response generators - replace string formatting in agent nodes."""
 
 from langchain_core.messages import HumanMessage, SystemMessage
 
@@ -10,7 +10,7 @@ from app.llm.types import OrderDraftResult
 class QaResponseGenerator:
     """Generates product Q&A answers using LLM with search results as context.
 
-    This is the RAG generation step — the LLM receives product data as context
+    This is the RAG generation step - the LLM receives product data as context
     and composes a natural language answer.
     """
 
