@@ -1,86 +1,55 @@
 from app.agent.state import AgentState
-from app.agent.tools import place_order, search_products
+from app.agent.tools import MOCK_PRODUCTS, search_products
+from app.llm.response_generator import OrderDraftGenerator, QaResponseGenerator
+from app.llm.skill_router import SkillRouter
 
 
-def route_skill(state: AgentState) -> dict:
-    """Classify user intent: Q&A (product questions) or Order (buy intent).
-
-    In production this would be an LLM call for classification.
-    We use keyword matching as a lightweight mock.
-    """
-    # If there's an unconfirmed order from a previous turn, stay in order flow
+async def route_skill(state: AgentState) -> dict:
+    """Classify user intent: Q&A or Order."""
     if state.get("needs_confirmation"):
         return {}
 
-    last_message: str = state["messages"][-1]["content"].lower()
-    order_keywords: list[str] = [
-        "buy", "order", "purchase", "i want", "i'd like", "get me",
-        "place", "checkout", "cart",
-    ]
-    is_order: bool = any(kw in last_message for kw in order_keywords)
-    return {"skill": "order" if is_order else "qa"}
+    last_message: str = state["messages"][-1]["content"]
+    result = await SkillRouter().classify(last_message)
+    return {"skill": result.skill}
 
 
 def search_products_node(state: AgentState) -> dict:
-    """Search product catalog for matching products (RAG retrieval step).
+    """Search product catalog — not an LLM call.
 
-    Maps to the retrieval phase of agentic RAG — agent decides whether
-    to search, then this node fetches context for the response.
+    In production this would be Elasticsearch / vector DB, not an LLM.
     """
     query: str = state["messages"][-1]["content"]
     results: list[dict[str, object]] = search_products(query)
     return {"product_results": results}
 
 
-def generate_qa_answer(state: AgentState) -> dict:
-    """Compose a product Q&A response from search results.
-
-    In production this node would feed product data as context to an LLM
-    (the generation step of RAG). Here we format results directly.
-    """
+async def generate_qa_answer(state: AgentState) -> dict:
+    """Compose product Q&A response — LLM with search results as context (RAG generation)."""
     products = state.get("product_results", [])
-    if not products:
-        answer = "I couldn't find any products matching your query."
-        sources: list[str] = []
-    else:
-        lines: list[str] = []
-        sources = []
-        for p in products:
-            lines.append(
-                f"- {p['name']} ({p['brand']}): ${p['price']:.2f} — {p['description']} [stock: {p['stock']}]"
-            )
-            sources.append(str(p["name"]))
-        answer = "Here's what I found:\n\n" + "\n".join(lines)
+    user_message: str = state["messages"][-1]["content"]
+    answer: str = await QaResponseGenerator().generate(user_message, products)
 
+    sources = [str(p["name"]) for p in products] if products else []
     return {
         "final_answer": answer,
-        "messages": [
-            *state["messages"],
-            {"role": "assistant", "content": answer},
-        ],
-        "product_results": sources,  # repurpose for ChatResponse.sources
+        "messages": [*state["messages"], {"role": "assistant", "content": answer}],
+        "product_results": sources,
     }
 
 
-def prepare_order(state: AgentState) -> dict:
-    """Generate order draft and ask for user confirmation (HITL entry point).
+async def prepare_order(state: AgentState) -> dict:
+    """Generate order draft and ask for confirmation (HITL entry point)."""
+    last_message: str = state["messages"][-1]["content"]
+    all_products: list[dict[str, object]] = list(MOCK_PRODUCTS.values())
 
-    Does NOT execute the order — returns a draft and sets needs_confirmation=True.
-    The next user message is routed to confirm_order.
-    """
-    last_message = state["messages"][-1]["content"]
-
-    # Super-simple product detection from the message (mock)
-    product_id = "probook-15"
-    quantity = 1
-    for pid in ["probook-15", "budget-phone-x", "ergo-mouse", "wireless-headphones"]:
-        if pid.replace("-", " ") in last_message or any(
-            word in last_message for word in pid.split("-")
-        ):
-            product_id = pid
-            break
-
-    draft = place_order(product_id, quantity)
+    draft_result = await OrderDraftGenerator().generate(last_message, all_products)
+    draft: dict = {
+        "product_id": draft_result.product_id,
+        "product_name": draft_result.product_name,
+        "quantity": draft_result.quantity,
+        "total_price": draft_result.total_price,
+    }
 
     answer = (
         f"Here's your order summary:\n\n"
@@ -95,27 +64,21 @@ def prepare_order(state: AgentState) -> dict:
         "needs_confirmation": True,
         "order_confirmed": False,
         "final_answer": answer,
-        "messages": [
-            *state["messages"],
-            {"role": "assistant", "content": answer},
-        ],
+        "messages": [*state["messages"], {"role": "assistant", "content": answer}],
     }
 
 
 def confirm_order(state: AgentState) -> dict:
-    """Process user confirmation and finalize (or cancel) the order.
-
-    This is the resume point after HITL — in production LangGraph this
-    would use interrupt()/Command(resume=...) instead of parsing the message.
-    """
-    last_message = state["messages"][-1]["content"].lower().strip()
+    """Process confirmation and finalize or cancel the order."""
+    last_message: str = state["messages"][-1]["content"].lower().strip()
     confirmed: bool = last_message in ("yes", "yeah", "y", "confirm", "ok", "okay")
 
+    order = state.get("order", {})
     if confirmed:
         answer = (
-            f"Order confirmed! Your {state['order']['product_name']} "
+            f"Order confirmed! Your {order.get('product_name', 'item')} "
             f"will be shipped within 2-3 business days. "
-            f"Order total: ${state['order']['total_price']:.2f}"
+            f"Order total: ${order.get('total_price', 0):.2f}"
         )
     else:
         answer = "Order cancelled. Let me know if you need anything else."
@@ -124,8 +87,5 @@ def confirm_order(state: AgentState) -> dict:
         "order_confirmed": confirmed,
         "needs_confirmation": False,
         "final_answer": answer,
-        "messages": [
-            *state["messages"],
-            {"role": "assistant", "content": answer},
-        ],
+        "messages": [*state["messages"], {"role": "assistant", "content": answer}],
     }
