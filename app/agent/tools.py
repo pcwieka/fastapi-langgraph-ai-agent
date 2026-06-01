@@ -56,16 +56,3 @@ def search_products(query: str) -> list[dict[str, object]]:
     return results if results else list(MOCK_PRODUCTS.values())
 
 
-def place_order(product_id: str, quantity: int) -> OrderDraft:
-    """Mock order placement — returns draft, does NOT actually place the order.
-
-    In production this would call an order management system via REST/gRPC.
-    Requires HITL confirmation before execution.
-    """
-    product = MOCK_PRODUCTS[product_id]
-    return {
-        "product_id": str(product["id"]),
-        "product_name": str(product["name"]),
-        "quantity": quantity,
-        "total_price": float(product["price"]) * quantity,
-    }

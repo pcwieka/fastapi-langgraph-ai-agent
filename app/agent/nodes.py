@@ -82,6 +82,8 @@ def confirm_order(state: AgentState) -> dict:
 
     order = state.get("order", {})
     if confirmed:
+        # In production: POST to order management API (REST/gRPC)
+        # Ex. order_api.place(order["product_id"], order["quantity"])
         answer = (
             f"Order confirmed! Your {order.get('product_name', 'item')} "
             f"will be shipped within 2-3 business days. "
