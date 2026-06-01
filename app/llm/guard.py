@@ -17,10 +17,17 @@ class Guardrail:
     def __init__(self) -> None:
         self._llm = get_llm_json()
 
-    async def check_input(self, message: str) -> InputGuardResult:
+    async def check_input(self, message: str, history: list[dict] | None = None) -> InputGuardResult:
+        context_text = ""
+        if history:
+            last_exchanges = history[-4:]  # last 2 turns (user + assistant)
+            context_text = "Conversation so far:\n" + "\n".join(
+                f"[{m['role']}] {m['content'][:200]}" for m in last_exchanges
+            ) + "\n\n"
+
         messages = [
             SystemMessage(content=INPUT_GUARD_PROMPT),
-            HumanMessage(content=message),
+            HumanMessage(content=f"{context_text}User message: {message}"),
         ]
         return await ainvoke_json(self._llm, messages, InputGuardResult)
 

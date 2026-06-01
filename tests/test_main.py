@@ -28,7 +28,7 @@ def _mock_guard(input_on_topic: bool, output_valid: bool = True):
     """Mock both input and output guardrail checks."""
     from app.llm.types import InputGuardResult, OutputGuardResult
 
-    async def check_input(self, message: str) -> InputGuardResult:
+    async def check_input(self, message: str, history=None) -> InputGuardResult:
         reason = "ok" if input_on_topic else "off-topic"
         return InputGuardResult(on_topic=input_on_topic, reason=reason)
 
