@@ -6,6 +6,7 @@ from app.agent.nodes import (
     prepare_order,
     route_skill,
     search_products_node,
+    track_order,
 )
 from app.agent.state import AgentState
 
@@ -16,11 +17,14 @@ def route_after_skill(state: AgentState) -> str:
     Q&A path: search products → generate answer
     Order path (no pending confirmation): prepare order draft → ask user to confirm
     Order path (pending confirmation): confirm or cancel the order
+    Track path: look up order status in the registry
     """
     if state.get("needs_confirmation"):
         return "confirm_order"
     if state["skill"] == "order":
         return "prepare_order"
+    if state["skill"] == "track":
+        return "track_order"
     return "search_products"
 
 
@@ -38,6 +42,9 @@ def build_graph() -> StateGraph:
     Order path (second turn — user confirms/cancels):
         route_skill ──(pending)──> confirm_order ──> END
 
+    Track path:
+        route_skill ──(track)──> track_order ──> END
+
     The HITL loop is implemented via session state persistence outside
     the graph. When needs_confirmation=True, the next request resumes
     in the order flow without requiring LangGraph interrupt/resume.
@@ -49,6 +56,7 @@ def build_graph() -> StateGraph:
     graph.add_node("generate_qa_answer", generate_qa_answer)
     graph.add_node("prepare_order", prepare_order)
     graph.add_node("confirm_order", confirm_order)
+    graph.add_node("track_order", track_order)
 
     graph.set_entry_point("route_skill")
 
@@ -59,11 +67,13 @@ def build_graph() -> StateGraph:
             "search_products": "search_products",
             "prepare_order": "prepare_order",
             "confirm_order": "confirm_order",
+            "track_order": "track_order",
         },
     )
     graph.add_edge("search_products", "generate_qa_answer")
     graph.add_edge("generate_qa_answer", END)
     graph.add_edge("prepare_order", END)
     graph.add_edge("confirm_order", END)
+    graph.add_edge("track_order", END)
 
     return graph.compile()

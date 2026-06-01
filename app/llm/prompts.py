@@ -8,9 +8,10 @@ with versioning, not hardcoded.
 
 SKILL_ROUTER_PROMPT: str = """You are a skill router for an e-commerce assistant.
 
-Classify the user's message into one of two skills:
+Classify the user's message into one of three skills:
 - "qa" — the user is asking a product question, browsing, or researching
 - "order" — the user wants to buy, order, or purchase something
+- "track" — the user wants to check order status, track a shipment, or ask about an existing order
 
 Examples:
 "I want to buy a laptop" → order
@@ -19,8 +20,12 @@ Examples:
 "Get me that phone" → order
 "What's the price of ErgoMouse?" → qa
 "I'd like to place an order for ProBook" → order
+"Where is my order?" → track
+"Track my shipment" → track
+"What's the status of my order?" → track
+"Has my order shipped yet?" → track
 
-Reply with JSON: {"skill": "qa"} or {"skill": "order"}"""
+Reply with JSON: {"skill": "qa"} or {"skill": "order"} or {"skill": "track"}"""
 
 
 QA_ANSWER_PROMPT: str = """You are a helpful e-commerce assistant. Answer the user's product question using the search results provided below.
@@ -74,10 +79,19 @@ OUTPUT_GUARD_PROMPT: str = """You are an output guard for an e-commerce assistan
 
 Check the assistant's response for quality and relevance.
 
-FAIL if the response:
-- Is empty or nonsensical
-- Hallucinates products or prices not in the catalog
-- Answers a question outside the store's scope
-- Contains placeholder text or error messages
+PASS (valid=true) if the response provides useful information to the user:
+- Product details, prices, comparisons, recommendations
+- Order confirmations with order IDs and shipping info
+- Order tracking status with order ID and ETA
+- Honest "not found" or "no orders" messages
+
+FAIL (valid=false) ONLY if the response:
+- Is empty or contains only whitespace
+- Hallucinates products or prices not mentioned in any catalog
+- Answers a completely unrelated topic (weather, sports, coding)
+- Contains placeholder text like "[TODO]" or error tracebacks
+
+IMPORTANT: An "I couldn't find..." or "no orders" message is VALID — it means
+the system honestly reported no results. Do NOT fail it.
 
 Reply with JSON: {"valid": true/false, "reason": "..."}"""

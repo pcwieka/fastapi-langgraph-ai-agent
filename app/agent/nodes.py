@@ -1,5 +1,5 @@
 from app.agent.state import AgentState
-from app.agent.tools import MOCK_PRODUCTS, search_products
+from app.agent.tools import MOCK_PRODUCTS, create_order, find_orders, search_products
 from app.llm.response_generator import OrderDraftGenerator, QaResponseGenerator
 from app.llm.skill_router import SkillRouter
 
@@ -12,7 +12,7 @@ order_generator = OrderDraftGenerator()
 
 
 async def route_skill(state: AgentState) -> dict:
-    """Classify user intent: Q&A or Order."""
+    """Classify user intent: Q&A, Order, or Track."""
     if state.get("needs_confirmation"):
         return {}
 
@@ -84,10 +84,9 @@ def confirm_order(state: AgentState) -> dict:
 
     order = state.get("order", {})
     if confirmed:
-        # In production: POST to order management API (REST/gRPC)
-        # Ex. order_api.place(order["product_id"], order["quantity"])
+        order_id = create_order(state["session_id"], order)
         answer = (
-            f"Order confirmed! Your {order.get('product_name', 'item')} "
+            f"Order {order_id} confirmed! Your {order.get('product_name', 'item')} "
             f"will be shipped within 2-3 business days. "
             f"Order total: ${order.get('total_price', 0):.2f}"
         )
@@ -97,6 +96,28 @@ def confirm_order(state: AgentState) -> dict:
     return {
         "order_confirmed": confirmed,
         "needs_confirmation": False,
+        "final_answer": answer,
+        "messages": [*state["messages"], {"role": "assistant", "content": answer}],
+    }
+
+
+def track_order(state: AgentState) -> dict:
+    """Look up orders for the current session and return status."""
+    session_id = state["session_id"]
+    orders = find_orders(session_id)
+
+    if not orders:
+        answer = "I couldn't find any orders for your session. Have you placed an order yet?"
+    else:
+        lines = []
+        for o in orders:
+            lines.append(
+                f"Order {o['order_id']}: {o['product_name']} x{o['quantity']} — "
+                f"${o['total_price']:.2f} | Status: {o['status']} | ETA: {o['eta']}"
+            )
+        answer = "Here are your orders:\n\n" + "\n".join(lines)
+
+    return {
         "final_answer": answer,
         "messages": [*state["messages"], {"role": "assistant", "content": answer}],
     }

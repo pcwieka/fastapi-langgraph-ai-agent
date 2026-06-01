@@ -13,8 +13,15 @@ from app.main import app, sessions
 
 
 @pytest.fixture(autouse=True)
-def clear_sessions() -> None:
+def clear_state() -> None:
     sessions.clear()
+    from app.agent.tools import ORDERS
+
+    ORDERS.clear()
+    # Reset order ID counter so test order IDs are predictable
+    import app.agent.tools as tools
+
+    tools._next_order_id = 1000
 
 
 @pytest.fixture
@@ -142,3 +149,37 @@ async def test_session_id_preserved(client: AsyncClient) -> None:
         response = await client.post("/chat", json={"message": "Hi", "session_id": "my-session-123"})
     assert response.status_code == 200
     assert response.json()["session_id"] == "my-session-123"
+
+
+@pytest.mark.anyio
+async def test_track_order_no_orders(client: AsyncClient) -> None:
+    g1, g2 = _mock_guard(input_on_topic=True)
+    with g1, g2, _mock_skill("track"):
+        response = await client.post(
+            "/chat", json={"message": "Where is my order?", "session_id": "s9"}
+        )
+    assert response.status_code == 200
+    assert "couldn't find any orders" in response.json()["answer"].lower()
+
+
+@pytest.mark.anyio
+async def test_track_order_after_confirm(client: AsyncClient) -> None:
+    g1, g2 = _mock_guard(input_on_topic=True)
+    # Place an order and confirm it
+    with g1, g2, _mock_skill("order"), _mock_order_draft():
+        await client.post(
+            "/chat", json={"message": "I want to buy a laptop", "session_id": "s10"}
+        )
+    with g1, g2, _mock_skill("order"):
+        await client.post("/chat", json={"message": "yes", "session_id": "s10"})
+
+    # Now track it
+    with g1, g2, _mock_skill("track"):
+        response = await client.post(
+            "/chat", json={"message": "Where is my order?", "session_id": "s10"}
+        )
+    assert response.status_code == 200
+    body = response.json()
+    assert "ORD-1000" in body["answer"]
+    assert "ProBook 15" in body["answer"]
+    assert "processing" in body["answer"].lower()

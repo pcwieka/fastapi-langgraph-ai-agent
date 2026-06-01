@@ -69,3 +69,21 @@ Content-Type: application/json
   "message": "",
   "session_id": "guard-demo"
 }
+
+### Flow 3: Track order — check status (mock, needs a confirmed order first)
+POST {{host}}/chat
+Content-Type: application/json
+
+{
+  "message": "What is the status of ORD-123?",
+  "session_id": "order-demo"
+}
+
+### Flow 3: Track order — no orders placed yet
+POST {{host}}/chat
+Content-Type: application/json
+
+{
+  "message": "Track my shipment",
+  "session_id": "track-new"
+}

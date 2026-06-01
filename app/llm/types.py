@@ -8,7 +8,7 @@ from pydantic import BaseModel, Field
 
 
 class SkillResult(BaseModel):
-    skill: str = Field(..., description="Either 'qa' or 'order'")
+    skill: str = Field(..., description="Either 'qa', 'order', or 'track'")
 
 
 class OrderDraftResult(BaseModel):

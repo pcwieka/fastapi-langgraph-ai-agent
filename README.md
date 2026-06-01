@@ -1,9 +1,10 @@
 # E-commerce AI Agent
 
-FastAPI + LangGraph + DeepSeek LLM — an e-commerce shopping assistant with two skills:
+FastAPI + LangGraph + DeepSeek LLM — an e-commerce shopping assistant with three skills:
 
 - **Q&A** — product questions → search → LLM response (agentic RAG)
 - **Order (HITL)** — LLM extracts product → order draft → user confirmation → place/cancel
+- **Track** — check order status by session ID
 
 ## Stack
 

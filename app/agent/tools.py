@@ -55,3 +55,29 @@ def search_products(query: str) -> list[dict[str, object]]:
         if any(word in searchable or word in lower for word in lower.split()):
             results.append(product)
     return results if results else list(MOCK_PRODUCTS.values())
+
+
+ORDERS: dict[str, dict] = {}
+_next_order_id = 1000
+
+
+def create_order(session_id: str, order: dict) -> str:
+    """Save a confirmed order to the mock registry and return its ID."""
+    global _next_order_id
+    order_id = f"ORD-{_next_order_id}"
+    _next_order_id += 1
+    ORDERS[order_id] = {
+        "order_id": order_id,
+        "session_id": session_id,
+        "product_name": order.get("product_name", ""),
+        "quantity": order.get("quantity", 0),
+        "total_price": order.get("total_price", 0),
+        "status": "processing",
+        "eta": "2-3 business days",
+    }
+    return order_id
+
+
+def find_orders(session_id: str) -> list[dict]:
+    """Return all orders for a given session."""
+    return [o for o in ORDERS.values() if o["session_id"] == session_id]
