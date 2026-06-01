@@ -1,4 +1,5 @@
 .idea
 .venv
 fastapi-langgraph-agent.iml
+.env
 docs/rag-info.md
