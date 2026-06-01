@@ -6,6 +6,23 @@ FastAPI + LangGraph + DeepSeek LLM — an e-commerce shopping assistant with thr
 - **Order (HITL)** — LLM extracts product → order draft → user confirmation → place/cancel
 - **Track** — check order status by session ID
 
+## Project structure
+
+```
+app/
+├── agent/          # LangGraph graph, skills (nodes), state
+├── product/        # ProductRepository (ABC + InMemory) + ProductService
+├── order/          # OrderRepository (ABC + InMemory) + OrderService
+├── llm/            # DeepSeek client, prompts, guardrail, skill router, generators
+├── main.py         # FastAPI entry point
+├── models.py       # Pydantic request/response
+└── logger.py       # Structured logging
+tests/
+├── test_main.py    # 10 integration tests (HTTP + mocked LLM)
+├── test_product.py # 7 unit tests (product repo + service)
+└── test_order.py   # 8 unit tests (order repo + service)
+```
+
 ## Stack
 
 | Tech | Role |
@@ -35,17 +52,12 @@ Requires `DEEPSEEK_API_KEY` (DeepSeek API key).
 
 ## Run
 
-### Docker
-
 ```bash
-make up       # starts with hot reload
+make up       # Docker: starts with hot reload
 make logs     # tail logs
 make down     # stop
-```
 
-### Local
-
-```bash
+# or locally:
 uvicorn app.main:app --reload
 ```
 
@@ -54,9 +66,13 @@ API: `http://localhost:8000` | Swagger: `http://localhost:8000/docs`
 ## Test
 
 ```bash
-make test     # in running Docker container
+make test       # in running Docker container
+make lint       # ruff check
+make format     # ruff format
+
 # or locally:
 python -m pytest tests/ -v
+ruff check app/ tests/
 ```
 
 ## API requests
@@ -86,4 +102,9 @@ curl -X POST http://localhost:8000/chat \
 curl -X POST http://localhost:8000/chat \
   -H "Content-Type: application/json" \
   -d '{"message": "yes", "session_id": "s2"}'
+
+# Track (after confirming an order in the same session)
+curl -X POST http://localhost:8000/chat \
+  -H "Content-Type: application/json" \
+  -d '{"message": "Where is my order?", "session_id": "s2"}'
 ```
