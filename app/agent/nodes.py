@@ -50,7 +50,9 @@ async def prepare_order(state: AgentState) -> dict:
     last_message: str = state["messages"][-1]["content"]
     all_products: list[dict[str, object]] = list(MOCK_PRODUCTS.values())
 
-    draft_result = await order_generator.generate(last_message, all_products)
+    draft_result = await order_generator.generate(
+        last_message, all_products, history=state.get("messages", [])
+    )
     draft: dict = {
         "product_id": draft_result.product_id,
         "product_name": draft_result.product_name,

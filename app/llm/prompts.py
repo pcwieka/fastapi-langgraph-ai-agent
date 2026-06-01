@@ -40,6 +40,11 @@ ORDER_DRAFT_PROMPT: str = """You are an order-taking assistant for an e-commerce
 The user wants to place an order. Extract the product and quantity from their message.
 Use the product catalog below to find the matching product.
 
+IMPORTANT: The user may refer to products mentioned earlier in the conversation
+(e.g. "I want to buy these", "that one", "the headphones"). Use the conversation
+history to resolve references.
+
+{conversation_history}
 Product catalog:
 {product_catalog}
 

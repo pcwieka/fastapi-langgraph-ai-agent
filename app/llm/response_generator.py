@@ -44,12 +44,22 @@ class OrderDraftGenerator:
     def __init__(self) -> None:
         self._llm = get_llm_json()
 
-    async def generate(self, user_message: str, product_catalog: list[dict]) -> OrderDraftResult:
+    async def generate(
+        self, user_message: str, product_catalog: list[dict], history: list[dict] | None = None
+    ) -> OrderDraftResult:
         catalog_text = "\n".join(
             f"- id: {p['id']} | {p['name']} | ${p['price']:.2f} | stock: {p['stock']}"
             for p in product_catalog
         )
-        prompt = ORDER_DRAFT_PROMPT.format(product_catalog=catalog_text)
+        if history:
+            conv_text = "Conversation history:\n" + "\n".join(
+                f"[{m['role']}] {m['content'][:300]}" for m in history[-6:]
+            )
+        else:
+            conv_text = "(no previous conversation)"
+        prompt = ORDER_DRAFT_PROMPT.format(
+            conversation_history=conv_text, product_catalog=catalog_text
+        )
         messages = [
             SystemMessage(content=prompt),
             HumanMessage(content=user_message),
