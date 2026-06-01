@@ -1,7 +1,9 @@
+from langgraph.checkpoint.base import BaseCheckpointSaver
 from langgraph.graph import END, StateGraph
 
 from app.agent.skills import (
-    confirm_order,
+    await_confirmation,
+    finalize_order,
     generate_qa_answer,
     prepare_order,
     route_skill,
@@ -15,12 +17,9 @@ def route_after_skill(state: AgentState) -> str:
     """Conditional edge after skill routing.
 
     Q&A path: search products → generate answer
-    Order path (no pending confirmation): prepare order draft → ask user to confirm
-    Order path (pending confirmation): confirm or cancel the order
+    Order path: prepare order draft → interrupt for HITL confirmation
     Track path: look up order status in the registry
     """
-    if state.get("needs_confirmation"):
-        return "confirm_order"
     if state["skill"] == "order":
         return "prepare_order"
     if state["skill"] == "track":
@@ -28,26 +27,23 @@ def route_after_skill(state: AgentState) -> str:
     return "search_products"
 
 
-def build_graph() -> StateGraph:
+def build_graph(checkpointer: BaseCheckpointSaver) -> StateGraph:
     """Build and compile the LangGraph agent graph.
+
+    Requires a checkpointer for state persistence between turns.
+    In production: SqliteSaver / PostgresSaver. In tests: InMemorySaver.
 
     Graph topology:
 
     Q&A path:
         route_skill ──(qa)──> search_products ──> generate_qa_answer ──> END
 
-    Order path (first turn):
-        route_skill ──(order)──> prepare_order ──> END [needs_confirmation=True]
-
-    Order path (second turn — user confirms/cancels):
-        route_skill ──(pending)──> confirm_order ──> END
+    Order path (HITL via interrupt):
+        route_skill ──(order)──> prepare_order ──> await_confirmation ──> finalize_order ──> END
+                                    (interrupt() pauses execution)     (resumes here)
 
     Track path:
         route_skill ──(track)──> track_order ──> END
-
-    The HITL loop is implemented via session state persistence outside
-    the graph. When needs_confirmation=True, the next request resumes
-    in the order flow without requiring LangGraph interrupt/resume.
     """
     graph: StateGraph = StateGraph(AgentState)
 
@@ -55,7 +51,8 @@ def build_graph() -> StateGraph:
     graph.add_node("search_products", search_products)
     graph.add_node("generate_qa_answer", generate_qa_answer)
     graph.add_node("prepare_order", prepare_order)
-    graph.add_node("confirm_order", confirm_order)
+    graph.add_node("await_confirmation", await_confirmation)
+    graph.add_node("finalize_order", finalize_order)
     graph.add_node("track_order", track_order)
 
     graph.set_entry_point("route_skill")
@@ -66,14 +63,14 @@ def build_graph() -> StateGraph:
         {
             "search_products": "search_products",
             "prepare_order": "prepare_order",
-            "confirm_order": "confirm_order",
             "track_order": "track_order",
         },
     )
     graph.add_edge("search_products", "generate_qa_answer")
     graph.add_edge("generate_qa_answer", END)
-    graph.add_edge("prepare_order", END)
-    graph.add_edge("confirm_order", END)
+    graph.add_edge("prepare_order", "await_confirmation")
+    graph.add_edge("await_confirmation", "finalize_order")
+    graph.add_edge("finalize_order", END)
     graph.add_edge("track_order", END)
 
-    return graph.compile()
+    return graph.compile(checkpointer=checkpointer)

@@ -22,5 +22,5 @@ class AgentState(TypedDict):
     product_results: list[dict[str, object]]
     order: NotRequired[OrderDraft]
     order_confirmed: NotRequired[bool]
-    needs_confirmation: NotRequired[bool]
+    user_response: NotRequired[str]
     final_answer: str

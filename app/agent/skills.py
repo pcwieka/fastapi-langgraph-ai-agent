@@ -1,3 +1,5 @@
+from langgraph.types import interrupt
+
 from app.agent.state import AgentState
 from app.llm.response_generator import OrderDraftGenerator, QaResponseGenerator
 from app.llm.skill_router import SkillRouter
@@ -19,10 +21,11 @@ order_service = OrderService(order_repo)
 
 
 async def route_skill(state: AgentState) -> dict:
-    """Classify user intent: Q&A, Order, or Track."""
-    if state.get("needs_confirmation"):
-        return {}
+    """Classify user intent: Q&A, Order, or Track.
 
+    Only runs for new messages — on HITL resume, LangGraph skips
+    the entry point and continues from the interrupt directly.
+    """
     last_message: str = state["messages"][-1]["content"]
     result = await skill_router.classify(last_message)
     return {"skill": result.skill}
@@ -50,7 +53,10 @@ async def generate_qa_answer(state: AgentState) -> dict:
 
 
 async def prepare_order(state: AgentState) -> dict:
-    """Generate order draft and ask for confirmation (HITL entry point)."""
+    """Generate order draft via LLM and return it for HITL confirmation.
+
+    The actual confirmation pause happens in await_confirmation node.
+    """
     last_message: str = state["messages"][-1]["content"]
     all_products: list[dict[str, object]] = product_service.get_all()
 
@@ -74,17 +80,35 @@ async def prepare_order(state: AgentState) -> dict:
 
     return {
         "order": draft,
-        "needs_confirmation": True,
         "order_confirmed": False,
         "final_answer": answer,
         "messages": [*state["messages"], {"role": "assistant", "content": answer}],
     }
 
 
-def confirm_order(state: AgentState) -> dict:
-    """Process confirmation and finalize or cancel the order."""
-    last_message: str = state["messages"][-1]["content"].lower().strip()
-    confirmed: bool = last_message in ("yes", "yeah", "y", "confirm", "ok", "okay")
+def await_confirmation(state: AgentState) -> dict:
+    """Pause execution and wait for user confirmation via LangGraph interrupt.
+
+    On first pass: interrupt() pauses the graph, checkpointer persists state.
+    On resume: interrupt() returns the value from Command(resume=...).
+    """
+    user_response: str = interrupt("Waiting for order confirmation")
+
+    return {
+        "user_response": user_response,
+        "messages": [
+            *state["messages"],
+            {"role": "user", "content": user_response},
+        ],
+    }
+
+
+def finalize_order(state: AgentState) -> dict:
+    """Process HITL confirmation and create or cancel the order."""
+    user_response: str = state.get("user_response", "")
+    confirmed: bool = user_response.lower().strip() in (
+        "yes", "yeah", "y", "confirm", "ok", "okay",
+    )
 
     order = state.get("order", {})
     if confirmed:
@@ -99,7 +123,6 @@ def confirm_order(state: AgentState) -> dict:
 
     return {
         "order_confirmed": confirmed,
-        "needs_confirmation": False,
         "final_answer": answer,
         "messages": [*state["messages"], {"role": "assistant", "content": answer}],
     }

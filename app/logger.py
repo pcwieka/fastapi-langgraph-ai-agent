@@ -32,7 +32,7 @@ def format_state(state: dict) -> str:
     parts = [
         f"session_id: {state.get('session_id', '?')}",
         f"skill: {state.get('skill') or '(none)'}",
-        f"needs_confirmation: {state.get('needs_confirmation', False)}",
+        f"has_order: {bool(state.get('order'))}",
         f"order_confirmed: {state.get('order_confirmed', False)}",
     ]
 

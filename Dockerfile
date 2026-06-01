@@ -12,11 +12,15 @@ RUN uv pip install --system --no-cache \
     "uvicorn[standard]" \
     pydantic \
     langgraph \
+    langgraph-checkpoint-sqlite \
     langchain-openai \
     python-dotenv
 
 # Copy application code
 COPY app/ app/
+
+# Create data directory for SQLite checkpointer (mounted as volume in compose)
+RUN mkdir -p data && chown appuser:appuser data
 
 # Run as non-root user
 RUN useradd --create-home appuser

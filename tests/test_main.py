@@ -9,14 +9,19 @@ from unittest.mock import AsyncMock, patch
 import pytest
 from httpx import ASGITransport, AsyncClient
 
-from app.main import app, sessions
+from app.main import app
 
 
 @pytest.fixture(autouse=True)
-def clear_state() -> None:
-    sessions.clear()
+def setup_graph_and_state() -> None:
+    """Set up InMemorySaver checkpointer and clear order repo between tests."""
+    from langgraph.checkpoint.memory import InMemorySaver
+
+    import app.main as main_module
+    from app.agent.graph import build_graph
     from app.agent.skills import order_repo
 
+    main_module.agent_graph = build_graph(InMemorySaver())
     order_repo.reset()
 
 
@@ -106,7 +111,8 @@ async def test_order_second_turn_confirm(client: AsyncClient) -> None:
     g1, g2 = _mock_guard(input_on_topic=True)
     with g1, g2, _mock_skill("order"), _mock_order_draft():
         await client.post("/chat", json={"message": "I want to buy a laptop", "session_id": "s2"})
-    with g1, g2, _mock_skill("order"):
+    # On resume, route_skill is skipped — no _mock_skill needed
+    with g1, g2:
         response = await client.post("/chat", json={"message": "yes", "session_id": "s2"})
     assert response.status_code == 200
     assert "confirmed" in response.json()["answer"].lower()
@@ -117,7 +123,8 @@ async def test_order_second_turn_cancel(client: AsyncClient) -> None:
     g1, g2 = _mock_guard(input_on_topic=True)
     with g1, g2, _mock_skill("order"), _mock_order_draft():
         await client.post("/chat", json={"message": "I want to buy a laptop", "session_id": "s3"})
-    with g1, g2, _mock_skill("order"):
+    # On resume, route_skill is skipped — no _mock_skill needed
+    with g1, g2:
         response = await client.post("/chat", json={"message": "no", "session_id": "s3"})
     assert response.status_code == 200
     assert "cancelled" in response.json()["answer"].lower()
@@ -166,7 +173,8 @@ async def test_track_order_after_confirm(client: AsyncClient) -> None:
         await client.post(
             "/chat", json={"message": "I want to buy a laptop", "session_id": "s10"}
         )
-    with g1, g2, _mock_skill("order"):
+    # On resume, route_skill is skipped — no _mock_skill needed
+    with g1, g2:
         await client.post("/chat", json={"message": "yes", "session_id": "s10"})
 
     # Now track it

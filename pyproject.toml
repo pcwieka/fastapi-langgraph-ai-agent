@@ -8,6 +8,7 @@ dependencies = [
     "uvicorn[standard]>=0.32.0",
     "pydantic>=2.10.0",
     "langgraph>=0.3.0",
+    "langgraph-checkpoint-sqlite>=2.0.0",
     "langchain-openai>=1.0.0",
     "python-dotenv>=1.0.0",
 ]
