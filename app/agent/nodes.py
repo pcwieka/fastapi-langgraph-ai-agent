@@ -3,6 +3,13 @@ from app.agent.tools import MOCK_PRODUCTS, search_products
 from app.llm.response_generator import OrderDraftGenerator, QaResponseGenerator
 from app.llm.skill_router import SkillRouter
 
+# Module-level singletons — one instance shared across all requests.
+# Each wraps get_llm().with_structured_output(), so creating them per request
+# would re-wrap the LLM client unnecessarily.
+skill_router = SkillRouter()
+qa_generator = QaResponseGenerator()
+order_generator = OrderDraftGenerator()
+
 
 async def route_skill(state: AgentState) -> dict:
     """Classify user intent: Q&A or Order."""
@@ -10,7 +17,7 @@ async def route_skill(state: AgentState) -> dict:
         return {}
 
     last_message: str = state["messages"][-1]["content"]
-    result = await SkillRouter().classify(last_message)
+    result = await skill_router.classify(last_message)
     return {"skill": result.skill}
 
 
@@ -28,7 +35,7 @@ async def generate_qa_answer(state: AgentState) -> dict:
     """Compose product Q&A response — LLM with search results as context (RAG generation)."""
     products = state.get("product_results", [])
     user_message: str = state["messages"][-1]["content"]
-    answer: str = await QaResponseGenerator().generate(user_message, products)
+    answer: str = await qa_generator.generate(user_message, products)
 
     sources = [str(p["name"]) for p in products] if products else []
     return {
@@ -43,7 +50,7 @@ async def prepare_order(state: AgentState) -> dict:
     last_message: str = state["messages"][-1]["content"]
     all_products: list[dict[str, object]] = list(MOCK_PRODUCTS.values())
 
-    draft_result = await OrderDraftGenerator().generate(last_message, all_products)
+    draft_result = await order_generator.generate(last_message, all_products)
     draft: dict = {
         "product_id": draft_result.product_id,
         "product_name": draft_result.product_name,
