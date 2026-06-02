@@ -1,22 +1,25 @@
 # E-commerce AI Agent - Agentic RAG + HITL
 
-An **agentic RAG** shopping assistant built with **FastAPI**, **LangGraph**, and **DeepSeek LLM** - the agent decides when to search, when to ask for confirmation, and when to look up orders. 7 nodes, 3 skills, 1 checkpointer.
+A **multi-skill AI agent** built with **FastAPI**, **LangGraph**, and **DeepSeek LLM**. The agent routes each request to the right skill - Q&A (RAG), Order (HITL), or Track - and orchestrates the full conversation flow. 7 nodes, 3 skills, 1 checkpointer.
 
-## What it does
+## Skills
 
-The agent handles three types of customer interactions, each routed dynamically by an LLM classifier:
+Each **skill** is a dedicated path through the LangGraph state graph. An LLM classifier picks the right one on every request:
 
-| Skill | Trigger | Flow |
-|-------|---------|------|
-| **Q&A** | "Tell me about laptops" | Classify intent → search product catalog → LLM composes answer from results (RAG) |
-| **Order** | "I want to buy a ProBook 15" | LLM extracts product + quantity → generates draft → asks for confirmation → places or cancels |
-| **Track** | "Where is my order?" | Looks up order registry by session → returns status and ETA |
+| Skill | Trigger | What happens |
+|-------|---------|-------------|
+| **Q&A (RAG)** | "Tell me about laptops" | Classify → search catalog → LLM composes answer from results |
+| **Order (HITL)** | "I want to buy a ProBook 15" | LLM extracts product → draft → interrupt → confirm → place |
+| **Track** | "Where is my order?" | Look up order registry by session → return status + ETA |
+
+Adding a new skill means adding one node + one edge - zero changes to existing skills.
 
 Every request passes through **input and output guardrails** (LLM-based validation) before reaching the agent and before returning to the user.
 
 ## Architecture highlights
 
-- **Agentic RAG** - the agent decides when to search the product catalog
+- **Multi-skill agent** - LLM-powered skill router classifies intent, conditional edges route to the right skill path
+- **Agentic RAG** - the agent decides when to search the product catalog (not every request)
 - **Human-in-the-Loop** - orders require explicit user confirmation via LangGraph's native `interrupt()` / `Command(resume=...)` pattern
 - **Persistent state** - graph execution state survives server restarts (SQLite checkpointer)
 - **Package-by-feature** - `product/` and `order/` domains each own their repository (ABC interface + in-memory implementation) and service layer
