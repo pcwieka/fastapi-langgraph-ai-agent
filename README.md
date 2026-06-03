@@ -1,6 +1,6 @@
 # E-commerce AI Agent - Agentic RAG + HITL
 
-A **multi-skill AI agent** built with **FastAPI**, **LangGraph**, and **DeepSeek LLM**. The agent routes each request to the right skill - Q&A (RAG), Order (HITL), or Track - and orchestrates the full conversation flow. 7 nodes, 3 skills, 1 checkpointer.
+A **multi-skill AI agent** built with **FastAPI**, **LangGraph**, and **OpenAI ChatGPT**. The agent routes each request to the right skill - Q&A (RAG), Order (HITL), or Track - and orchestrates the full conversation flow. 7 nodes, 3 skills, 1 checkpointer.
 
 ## Skills
 
@@ -79,7 +79,7 @@ flowchart TB
     end
 
     subgraph LLM["LLM Layer"]
-        DeepSeek[DeepSeek V4 Flash]
+        OpenAI[OpenAI ChatGPT<br/>gpt-4o-mini]
     end
 
     subgraph Domains["Domain Packages"]
@@ -97,11 +97,11 @@ flowchart TB
     QA2 --> GuardOut --> User
     Ord3 --> GuardOut --> User
     Track --> GuardOut --> User
-    QA2 -.->|LLM call| DeepSeek
-    Ord1 -.->|LLM call| DeepSeek
-    Router -.->|LLM call| DeepSeek
-    GuardIn -.->|LLM call| DeepSeek
-    GuardOut -.->|LLM call| DeepSeek
+    QA2 -.->|LLM call| OpenAI
+    Ord1 -.->|LLM call| OpenAI
+    Router -.->|LLM call| OpenAI
+    GuardIn -.->|LLM call| OpenAI
+    GuardOut -.->|LLM call| OpenAI
     LangGraph --> CP
     QA1 --> Product
     Ord1 --> Product
@@ -159,7 +159,7 @@ app/
 ├── agent/          # LangGraph graph, skills, state
 ├── product/        # ProductRepository + ProductService
 ├── order/          # OrderRepository + OrderService
-├── llm/            # DeepSeek client, prompts, guardrail, skill router, generators
+├── llm/            # OpenAI client, prompts, guardrail, skill router, generators
 ├── main.py         # FastAPI entry point + lifespan
 ├── models.py       # Pydantic request/response
 └── logger.py       # Structured logging with timing
@@ -175,7 +175,7 @@ tests/
 |-----------|-----------|
 | API framework | FastAPI (async) |
 | Agent orchestration | LangGraph (state graph with 7 nodes, 3 conditional paths) |
-| LLM | DeepSeek V4 Flash (via langchain-openai) |
+| LLM | OpenAI ChatGPT gpt-4o-mini (via langchain-openai) |
 | Data validation | Pydantic |
 | State persistence | LangGraph SQLite checkpointer (+ InMemorySaver for tests) |
 | Linting & formatting | ruff |
@@ -186,7 +186,7 @@ tests/
 
 ```bash
 # 1. Set your API key
-cp .env.example .env   # edit with your DEEPSEEK_API_KEY
+cp .env.example .env   # edit with your OPENAI_API_KEY
 
 # 2. Build and run
 make build

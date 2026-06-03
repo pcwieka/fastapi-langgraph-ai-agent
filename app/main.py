@@ -3,7 +3,7 @@ import uuid
 from contextlib import asynccontextmanager
 
 from dotenv import load_dotenv
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI
 from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
 from langgraph.graph import StateGraph
 from langgraph.types import Command
@@ -100,7 +100,12 @@ async def chat(request: ChatRequest) -> ChatResponse:
     )
 
     if not output_check.valid:
-        raise HTTPException(status_code=500, detail="Output guardrail: invalid response")
+        logger.warning("GUARD OUTPUT rejected response: %s", output_check.reason)
+        return ChatResponse(
+            answer="I'm sorry, I ran into an issue processing your request. Could you try again or rephrase?",
+            session_id=session_id,
+            sources=result.get("product_results", []),
+        )
 
     logger.info("DONE [%.2fs] | total request time", time.perf_counter() - t_start)
 

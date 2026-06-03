@@ -2,7 +2,7 @@ import os
 
 # Must be set BEFORE importing app - Guardrail() is a module-level singleton
 # that calls get_llm() at import time.
-os.environ["DEEPSEEK_API_KEY"] = "test-key"
+os.environ["OPENAI_API_KEY"] = "test-key"
 
 from unittest.mock import AsyncMock, patch
 
