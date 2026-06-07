@@ -1,7 +1,6 @@
 import os
 
-# Must be set BEFORE importing app - Guardrail() is a module-level singleton
-# that calls get_llm() at import time.
+# Must be set BEFORE importing app — LlmClient reads OPENAI_API_KEY at import time.
 os.environ["OPENAI_API_KEY"] = "test-key"
 
 from unittest.mock import AsyncMock, patch
@@ -18,10 +17,9 @@ def setup_graph_and_state() -> None:
     from langgraph.checkpoint.memory import InMemorySaver
 
     import app.main as main_module
-    from app.agent.graph import build_graph
-    from app.agent.skills import order_repo
+    from app.config.di import agent_graph_builder, order_repo
 
-    main_module.agent_graph = build_graph(InMemorySaver())
+    main_module.agent = agent_graph_builder.build(InMemorySaver())
     order_repo.reset()
 
 

@@ -156,10 +156,11 @@ sequenceDiagram
 
 ```
 app/
-├── agent/          # LangGraph graph, skills, state
-├── product/        # ProductRepository + ProductService
-├── order/          # OrderRepository + OrderService
-├── llm/            # OpenAI client, prompts, guardrail, skill router, generators
+├── agent/          # LangGraph graph (AgentGraph), skills (AgentSkills), state
+├── config/         # DI wiring — module-level singletons (di.py)
+├── product/        # ProductRepository (ABC + InMemory) + ProductService
+├── order/          # OrderRepository (ABC + InMemory) + OrderService
+├── llm/            # LlmClient, prompts, guardrail, skill router, response generators
 ├── main.py         # FastAPI entry point + lifespan
 ├── models.py       # Pydantic request/response
 └── logger.py       # Structured logging with timing

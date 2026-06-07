@@ -1,8 +1,8 @@
 """LLM-based skill router - replaces keyword matching in route_skill node."""
 
 from langchain_core.messages import HumanMessage, SystemMessage
+from langchain_openai import ChatOpenAI
 
-from app.llm.client import get_llm
 from app.llm.prompts import SKILL_ROUTER_PROMPT
 from app.llm.types import SkillResult
 
@@ -14,8 +14,8 @@ class SkillRouter:
     guaranteed JSON schema compliance.
     """
 
-    def __init__(self) -> None:
-        self._llm = get_llm().with_structured_output(SkillResult)
+    def __init__(self, llm: ChatOpenAI) -> None:
+        self._llm = llm.with_structured_output(SkillResult)
 
     async def classify(self, message: str) -> SkillResult:
         messages = [

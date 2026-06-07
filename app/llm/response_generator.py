@@ -1,8 +1,8 @@
 """LLM-based response generators - replace string formatting in agent nodes."""
 
 from langchain_core.messages import HumanMessage, SystemMessage
+from langchain_openai import ChatOpenAI
 
-from app.llm.client import get_llm
 from app.llm.prompts import ORDER_DRAFT_PROMPT, QA_ANSWER_PROMPT
 from app.llm.types import OrderDraftResult
 
@@ -14,8 +14,8 @@ class QaResponseGenerator:
     and composes a natural language answer.
     """
 
-    def __init__(self) -> None:
-        self._llm = get_llm()
+    def __init__(self, llm: ChatOpenAI) -> None:
+        self._llm = llm
 
     async def generate(self, user_message: str, products: list[dict]) -> str:
         if not products:
@@ -40,8 +40,8 @@ class OrderDraftGenerator:
     Uses OpenAI's native structured output for guaranteed JSON schema compliance.
     """
 
-    def __init__(self) -> None:
-        self._llm = get_llm().with_structured_output(OrderDraftResult)
+    def __init__(self, llm: ChatOpenAI) -> None:
+        self._llm = llm.with_structured_output(OrderDraftResult)
 
     async def generate(
         self, user_message: str, product_catalog: list[dict], history: list[dict] | None = None

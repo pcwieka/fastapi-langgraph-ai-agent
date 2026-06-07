@@ -1,8 +1,8 @@
 """LLM-based guardrails - both input (is this on-topic?) and output (is this response valid?)."""
 
 from langchain_core.messages import HumanMessage, SystemMessage
+from langchain_openai import ChatOpenAI
 
-from app.llm.client import get_llm
 from app.llm.prompts import INPUT_GUARD_PROMPT, OUTPUT_GUARD_PROMPT
 from app.llm.types import InputGuardResult, OutputGuardResult
 
@@ -15,9 +15,9 @@ class Guardrail:
     Here we reuse the same model for both to keep things simple.
     """
 
-    def __init__(self) -> None:
-        self._input_llm = get_llm().with_structured_output(InputGuardResult)
-        self._output_llm = get_llm().with_structured_output(OutputGuardResult)
+    def __init__(self, llm: ChatOpenAI) -> None:
+        self._input_llm = llm.with_structured_output(InputGuardResult)
+        self._output_llm = llm.with_structured_output(OutputGuardResult)
 
     async def check_input(self, message: str, history: list[dict] | None = None) -> InputGuardResult:
         context_text = ""
