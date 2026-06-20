@@ -212,6 +212,38 @@ make format    ruff format
 make build     rebuild Docker image
 ```
 
+## Skill router evaluation
+
+The skill router is LLM-powered, so accuracy is measured with a frozen test set.
+
+```bash
+make eval   # runs evaluation/skill_router.eval.py — hits real OpenAI API
+```
+
+**Results (gpt-4o-mini, 56 test cases):**
+
+| Skill | Cases | Correct | Accuracy |
+|-------|-------|---------|----------|
+| Q&A   | 17    | 17      | 100%     |
+| Order | 26    | 20      | 76.9%    |
+| Track | 13    | 13      | 100%     |
+| **Total** | **56** | **50** | **88.89%** |
+
+**Main failure pattern — Order → Track (6 cases):**
+
+The router misclassifies order-management intent as tracking when the message contains order-status vocabulary:
+
+```
+"I want to cancel my order"                        expected=order  got=track
+"I want to return my order"                        expected=order  got=track
+"Return the headphones I bought"                   expected=order  got=track
+"I want to cancel order #123"                      expected=order  got=track
+"I want to return the item, what is the status?"   expected=order  got=track
+"I am not happy with my order, I want a refund"    expected=order  got=track
+```
+
+Root cause: the prompt doesn't explicitly distinguish *managing* an order (cancel, return, refund) from *tracking* it (status, ETA, location). A prompt update or few-shot examples would fix this.
+
 ## API
 
 ```bash

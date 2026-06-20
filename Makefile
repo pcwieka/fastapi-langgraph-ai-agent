@@ -1,4 +1,4 @@
-.PHONY: build up down logs test lint format clean
+.PHONY: build up down logs test lint format clean eval
 
 build:
 	docker compose build
@@ -20,6 +20,9 @@ lint:
 
 format:
 	ruff format app/ tests/
+
+eval:
+	python evaluation/skill_router.eval.py
 
 clean:
 	docker compose down -v
