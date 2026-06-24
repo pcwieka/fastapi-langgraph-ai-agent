@@ -276,7 +276,7 @@ make build              rebuild Docker image
 The skill router is LLM-powered, so accuracy is measured with a frozen test set.
 
 ```bash
-make eval   # runs evaluation/skill_router.eval.py — hits real OpenAI API
+make eval   # runs `python -m evaluation.skill_router_eval` — hits real OpenAI API
 ```
 
 **Results (gpt-4o-mini, 56 test cases):**

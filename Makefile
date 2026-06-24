@@ -34,7 +34,7 @@ format:
 	ruff format app/ embedding/ tests/
 
 eval:
-	python evaluation/skill_router.eval.py
+	python -m evaluation.skill_router_eval
 
 clean:
 	docker compose down -v
