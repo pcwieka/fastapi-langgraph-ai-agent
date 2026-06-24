@@ -16,6 +16,57 @@ Content-Type: application/json
   "session_id": "qa-demo"
 }
 
+### Flow 1b: Semantic RAG - no keyword overlap (expects: UltraBook 13 Air)
+# "lightweight to carry while traveling" -> matches "ultraportable / lightweight",
+# even though the query never says "laptop". Keyword search would miss this.
+POST {{host}}/chat
+Content-Type: application/json
+
+{
+  "message": "I need something really light to carry around while traveling",
+  "session_id": "rag-demo"
+}
+
+### Flow 1b: Semantic RAG - intent, not keywords (expects: SlatePad Pro 11)
+# "take notes and sketch by hand" -> matches stylus support / drawing / note-taking.
+POST {{host}}/chat
+Content-Type: application/json
+
+{
+  "message": "What can I use to take notes and sketch by hand?",
+  "session_id": "rag-demo"
+}
+
+### Flow 1b: Semantic RAG - paraphrase (expects: Rugged Phone Go)
+# "survives being dropped in water" -> matches "water and dust resistant / IP68".
+POST {{host}}/chat
+Content-Type: application/json
+
+{
+  "message": "Which phone survives being dropped in water?",
+  "session_id": "rag-demo"
+}
+
+### Flow 1b: Semantic RAG - use case (expects: PulseFit Watch)
+# "track my running and heart rate" -> matches fitness smartwatch / GPS / heart rate.
+POST {{host}}/chat
+Content-Type: application/json
+
+{
+  "message": "I want to track my running and heart rate",
+  "session_id": "rag-demo"
+}
+
+### Flow 1b: Semantic RAG - problem statement (expects: AeroStand Aluminum)
+# "back hurts at my desk" -> matches "improves posture", zero shared keywords.
+POST {{host}}/chat
+Content-Type: application/json
+
+{
+  "message": "My back hurts when I work at my desk all day, any ideas?",
+  "session_id": "rag-demo"
+}
+
 ### Flow 2: Order - HITL step 1: draft
 POST {{host}}/chat
 Content-Type: application/json

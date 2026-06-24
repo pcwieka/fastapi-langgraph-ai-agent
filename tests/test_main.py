@@ -63,6 +63,22 @@ def _mock_qa_answer(response: str):
     )
 
 
+def _mock_product_search(products: list[dict] | None = None):
+    """Stub the vector search so Q&A tests don't need a live ChromaDB server."""
+    if products is None:
+        products = [
+            {
+                "id": "probook-15",
+                "name": "ProBook 15",
+                "brand": "TechCorp",
+                "price": 1299.99,
+                "stock": 5,
+                "description": "Business laptop.",
+            }
+        ]
+    return patch("app.product.service.ProductService.search", return_value=products)
+
+
 def _mock_order_draft():
     from app.llm.types import OrderDraftResult
 
@@ -78,7 +94,13 @@ def _mock_order_draft():
 @pytest.mark.anyio
 async def test_qa_product_search(client: AsyncClient) -> None:
     g1, g2 = _mock_guard(input_on_topic=True)
-    with g1, g2, _mock_skill("qa"), _mock_qa_answer("LLM: ProBook 15 is a great laptop"):
+    with (
+        g1,
+        g2,
+        _mock_skill("qa"),
+        _mock_product_search(),
+        _mock_qa_answer("LLM: ProBook 15 is a great laptop"),
+    ):
         response = await client.post("/chat", json={"message": "Tell me about laptops"})
     assert response.status_code == 200
     assert "ProBook" in response.json()["answer"]
@@ -88,7 +110,7 @@ async def test_qa_product_search(client: AsyncClient) -> None:
 @pytest.mark.anyio
 async def test_qa_no_match(client: AsyncClient) -> None:
     g1, g2 = _mock_guard(input_on_topic=True)
-    with g1, g2, _mock_skill("qa"), _mock_qa_answer("LLM: no products found"):
+    with g1, g2, _mock_skill("qa"), _mock_product_search([]), _mock_qa_answer("LLM: no products found"):
         response = await client.post("/chat", json={"message": "Do you sell furniture?"})
     assert response.status_code == 200
     assert "no products" in response.json()["answer"].lower()
@@ -146,7 +168,7 @@ async def test_empty_message_rejected_by_pydantic(client: AsyncClient) -> None:
 @pytest.mark.anyio
 async def test_session_id_preserved(client: AsyncClient) -> None:
     g1, g2 = _mock_guard(input_on_topic=True)
-    with g1, g2, _mock_skill("qa"), _mock_qa_answer("LLM: hello"):
+    with g1, g2, _mock_skill("qa"), _mock_product_search(), _mock_qa_answer("LLM: hello"):
         response = await client.post("/chat", json={"message": "Hi", "session_id": "my-session-123"})
     assert response.status_code == 200
     assert response.json()["session_id"] == "my-session-123"

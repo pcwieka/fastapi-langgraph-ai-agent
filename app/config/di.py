@@ -14,11 +14,19 @@ from app.llm.response_generator import OrderDraftGenerator, QaResponseGenerator
 from app.llm.skill_router import SkillRouter
 from app.order.repository import InMemoryOrderRepository
 from app.order.service import OrderService
-from app.product.repository import InMemoryProductRepository
+from app.product.repository import ChromaProductRepository
 from app.product.service import ProductService
 
 # Repositories (infrastructure)
-product_repo = InMemoryProductRepository()
+# Product search is backed by ChromaDB (semantic retrieval). The collection is
+# populated offline by the indexer (`make index`); the client connects lazily.
+product_repo = ChromaProductRepository(
+    host=os.environ.get("CHROMA_HOST", "localhost"),
+    port=int(os.environ.get("CHROMA_PORT", "8000")),
+    collection_name=os.environ.get("CHROMA_COLLECTION", "products"),
+    embedding_model=os.environ.get("OPENAI_EMBEDDING_MODEL", "text-embedding-3-small"),
+    top_k=int(os.environ.get("RAG_TOP_K", "3")),
+)
 order_repo = InMemoryOrderRepository()
 
 # Domain services

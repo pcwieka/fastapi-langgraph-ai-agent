@@ -15,10 +15,13 @@ RUN uv pip install --system --no-cache \
     langgraph-checkpoint-sqlite \
     aiosqlite \
     langchain-openai \
-    python-dotenv
+    python-dotenv \
+    "chromadb>=1.5.9,<2.0.0"
 
-# Copy application code
+# Copy application code, the offline embedding indexer, and the product catalog
 COPY app/ app/
+COPY embedding/ embedding/
+COPY data/products.json data/products.json
 
 # Run as non-root user
 RUN useradd --create-home appuser && mkdir -p data && chown appuser:appuser data

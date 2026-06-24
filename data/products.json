@@ -1,0 +1,202 @@
+[
+  {
+    "id": "probook-15",
+    "name": "ProBook 15",
+    "category": "laptops",
+    "brand": "TechCorp",
+    "price": 1299.99,
+    "stock": 5,
+    "specs": "15.6\" display, 16GB RAM, 512GB SSD, Intel i7",
+    "description": "Business laptop with all-day battery life. Ideal for professionals who travel."
+  },
+  {
+    "id": "ultrabook-13",
+    "name": "UltraBook 13 Air",
+    "category": "laptops",
+    "brand": "TechCorp",
+    "price": 999.99,
+    "stock": 9,
+    "specs": "13.3\" display, 8GB RAM, 256GB SSD, fanless, 1.1kg",
+    "description": "Lightweight ultraportable laptop for students and writers on the move."
+  },
+  {
+    "id": "gamerbook-17",
+    "name": "GamerBook 17 RTX",
+    "category": "laptops",
+    "brand": "NovaGear",
+    "price": 1899.99,
+    "stock": 3,
+    "specs": "17.3\" 165Hz display, 32GB RAM, 1TB SSD, RTX 4070",
+    "description": "High-performance gaming laptop with a fast refresh display and dedicated GPU."
+  },
+  {
+    "id": "budget-phone-x",
+    "name": "BudgetPhone X",
+    "category": "phones",
+    "brand": "PhoneCo",
+    "price": 299.99,
+    "stock": 12,
+    "specs": "6.1\" display, 8GB RAM, 128GB storage, dual camera",
+    "description": "Affordable smartphone with great battery life and a clean software experience."
+  },
+  {
+    "id": "flagship-phone-pro",
+    "name": "Flagship Phone Pro",
+    "category": "phones",
+    "brand": "PhoneCo",
+    "price": 1099.99,
+    "stock": 7,
+    "specs": "6.7\" OLED 120Hz, 12GB RAM, 256GB storage, triple camera",
+    "description": "Premium smartphone with a pro-grade camera system and high refresh OLED screen."
+  },
+  {
+    "id": "rugged-phone-go",
+    "name": "Rugged Phone Go",
+    "category": "phones",
+    "brand": "FieldTech",
+    "price": 449.99,
+    "stock": 6,
+    "specs": "6.0\" display, 6GB RAM, 128GB storage, IP68, 6000mAh",
+    "description": "Water and dust resistant phone with a huge battery for outdoor and field work."
+  },
+  {
+    "id": "ergo-mouse",
+    "name": "ErgoMouse Pro",
+    "category": "accessories",
+    "brand": "ComfortTech",
+    "price": 79.99,
+    "stock": 0,
+    "specs": "Wireless, Bluetooth, ergonomic design, USB-C charging",
+    "description": "Ergonomic wireless mouse designed for all-day comfort and reduced wrist strain."
+  },
+  {
+    "id": "mech-keyboard",
+    "name": "MechType 75",
+    "category": "accessories",
+    "brand": "ComfortTech",
+    "price": 129.99,
+    "stock": 15,
+    "specs": "75% layout, hot-swappable switches, RGB, USB-C",
+    "description": "Compact mechanical keyboard with hot-swappable switches for typing enthusiasts."
+  },
+  {
+    "id": "usb-c-hub",
+    "name": "ConnectHub 7-in-1",
+    "category": "accessories",
+    "brand": "LinkPro",
+    "price": 49.99,
+    "stock": 22,
+    "specs": "HDMI 4K, 2x USB-A, USB-C PD, SD/microSD, Ethernet",
+    "description": "Seven-port USB-C hub that turns one port into a full desktop connection set."
+  },
+  {
+    "id": "laptop-stand",
+    "name": "AeroStand Aluminum",
+    "category": "accessories",
+    "brand": "DeskWorks",
+    "price": 39.99,
+    "stock": 18,
+    "specs": "Aluminum, adjustable height, foldable, up to 17\"",
+    "description": "Adjustable aluminum laptop stand that improves posture and airflow at your desk."
+  },
+  {
+    "id": "wireless-headphones",
+    "name": "SoundMax Wireless",
+    "category": "audio",
+    "brand": "SoundMax",
+    "price": 149.99,
+    "stock": 8,
+    "specs": "Active noise cancelling, 30h battery, Bluetooth 5.3",
+    "description": "Premium wireless over-ear headphones with active noise cancelling and long battery."
+  },
+  {
+    "id": "earbuds-mini",
+    "name": "SoundMax Buds Mini",
+    "category": "audio",
+    "brand": "SoundMax",
+    "price": 89.99,
+    "stock": 25,
+    "specs": "In-ear, ANC, 24h with case, IPX4, wireless charging",
+    "description": "Compact noise-cancelling earbuds with a pocketable case and sweat resistance."
+  },
+  {
+    "id": "bt-speaker",
+    "name": "BoomBox Go",
+    "category": "audio",
+    "brand": "BassLine",
+    "price": 119.99,
+    "stock": 11,
+    "specs": "360 sound, 20h battery, IP67 waterproof, USB-C",
+    "description": "Portable waterproof Bluetooth speaker with 360-degree sound for outdoor use."
+  },
+  {
+    "id": "monitor-27-4k",
+    "name": "ClearView 27 4K",
+    "category": "monitors",
+    "brand": "ClearView",
+    "price": 379.99,
+    "stock": 10,
+    "specs": "27\" 4K UHD, IPS, 99% sRGB, USB-C 65W, HDR10",
+    "description": "Color-accurate 4K monitor with USB-C charging, great for creative and office work."
+  },
+  {
+    "id": "monitor-34-uw",
+    "name": "ClearView 34 UltraWide",
+    "category": "monitors",
+    "brand": "ClearView",
+    "price": 599.99,
+    "stock": 4,
+    "specs": "34\" UWQHD, 144Hz, curved, USB-C, KVM switch",
+    "description": "Curved ultrawide monitor with high refresh rate and a built-in KVM for two machines."
+  },
+  {
+    "id": "tablet-pro-11",
+    "name": "SlatePad Pro 11",
+    "category": "tablets",
+    "brand": "SlateTech",
+    "price": 799.99,
+    "stock": 9,
+    "specs": "11\" OLED, 8GB RAM, 256GB, stylus support, USB-C",
+    "description": "Pro tablet with an OLED screen and stylus support for drawing and note-taking."
+  },
+  {
+    "id": "tablet-lite-10",
+    "name": "SlatePad Lite 10",
+    "category": "tablets",
+    "brand": "SlateTech",
+    "price": 329.99,
+    "stock": 14,
+    "specs": "10.1\" LCD, 4GB RAM, 128GB, 12h battery",
+    "description": "Affordable everyday tablet for browsing, streaming, and reading."
+  },
+  {
+    "id": "smartwatch-fit",
+    "name": "PulseFit Watch",
+    "category": "wearables",
+    "brand": "PulseFit",
+    "price": 199.99,
+    "stock": 16,
+    "specs": "AMOLED, GPS, heart rate, SpO2, 7-day battery, 5ATM",
+    "description": "Fitness smartwatch with GPS and health tracking and a week of battery life."
+  },
+  {
+    "id": "ssd-1tb",
+    "name": "RapidDrive 1TB",
+    "category": "storage",
+    "brand": "RapidDrive",
+    "price": 109.99,
+    "stock": 30,
+    "specs": "1TB NVMe portable SSD, USB 3.2, 1050MB/s, pocket size",
+    "description": "Fast pocket-sized portable SSD for backups and moving large files between machines."
+  },
+  {
+    "id": "wifi-router-ax",
+    "name": "MeshNet AX3000",
+    "category": "networking",
+    "brand": "LinkPro",
+    "price": 159.99,
+    "stock": 13,
+    "specs": "Wi-Fi 6, AX3000, mesh-ready, 4 LAN ports, WPA3",
+    "description": "Wi-Fi 6 mesh-ready router for fast, reliable coverage across a whole home."
+  }
+]

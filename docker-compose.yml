@@ -1,13 +1,36 @@
 services:
+  # Vector database — hosted in its own container, persists embeddings to a volume.
+  chroma:
+    image: chromadb/chroma:1.5.9
+    ports:
+      # Host 8001 -> container 8000 to avoid clashing with the app on 8000.
+      - "8001:8000"
+    environment:
+      IS_PERSISTENT: "TRUE"
+      PERSIST_DIRECTORY: /data
+      ANONYMIZED_TELEMETRY: "FALSE"
+    volumes:
+      - chroma-data:/data
+
   ecommerce-agent:
     build: .
     ports:
       - "8000:8000"
     env_file:
       - .env
+    environment:
+      # The app talks to Chroma over the compose network by service name.
+      CHROMA_HOST: chroma
+      CHROMA_PORT: "8000"
+    depends_on:
+      - chroma
     # Hot reload for development - watches app/ for changes
     # Remove --reload and the volume mount for production
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
     volumes:
       - ./app:/app/app
+      - ./embedding:/app/embedding
       - ./data:/app/data
+
+volumes:
+  chroma-data:
