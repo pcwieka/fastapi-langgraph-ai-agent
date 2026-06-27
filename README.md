@@ -279,14 +279,14 @@ The skill router is LLM-powered, so accuracy is measured with a frozen test set.
 make eval   # runs `python -m evaluation.skill_router_eval` — hits real OpenAI API
 ```
 
-**Results (gpt-4o-mini, 56 test cases):**
+**Results (gpt-4o-mini, 54 test cases):**
 
 | Skill | Cases | Correct | Accuracy |
 |-------|-------|---------|----------|
 | Q&A   | 17    | 17      | 100%     |
-| Order | 26    | 20      | 76.9%    |
-| Track | 13    | 13      | 100%     |
-| **Total** | **56** | **50** | **88.89%** |
+| Order | 21    | 15      | 71.43%   |
+| Track | 16    | 16      | 100%     |
+| **Total** | **54** | **48** | **88.89%** |
 
 **Main failure pattern — Order → Track (6 cases):**
 
